@@ -23,7 +23,7 @@
 
 ## Phases B–D
 - status: IN PROGRESS — attachments, staff tools and LIST/DOCS/CALENDAR/FORUM/presence-only VOICE are implemented; broader CRUD/sign-in and parity verification is still incomplete.
-- migrations applied: live schema already present; message-reply/thread migrations `20261018170000` and `20261018171000` applied this session.
+- migrations applied: live Supabase versions `20261018161829`, `20261018162322`, `20261018163001`, `20261018163222`, `20261018163259` are mirrored locally by their exact version names.
 - known gaps: full Guilded parity is not claimed; the complete legacy regression runner was interrupted by a Windows Chromium resource error, so only focused live checks are reported as passing.
 
 ## Budget continuation — 2026-10-18
@@ -47,6 +47,6 @@
 - New session STEP 0: DONE — `access_key` used over HTTPS Management API; live migrations applied and verified without direct Postgres or Supabase CLI login.
 - Latest STEP 0: DONE — `.env` remains ignored and uncommitted; database and function changes were applied through Supabase HTTPS APIs.
 - STEP 1: PARTIAL — removed the simulated staff panel and fixed counters; dashboard reads staff_action('dashboard'), and missing responses show unavailable rather than fabricated zeros; real anonymous /admin route passed at 1280/390, but signed-in live counts were not exercised.
-- E2E continuation: PARTIAL — focused live security tests pass for storage permissions, private replies, thread moderation and direct table denial; focused localhost browser tests pass for replies/threads at 1280/390 with empty console; the broader regression runner still hit a Windows Chromium resource failure.
+- E2E continuation: PARTIAL — focused live security tests pass for owner/Admin/member upload permissions, private replies, thread moderation and direct table denial; focused localhost browser tests pass for replies/threads at 1280/390 with empty console; the broader regression runner still hit a Windows Chromium resource failure.
 - Live regression follow-up: DONE — `access_key` validated and used over HTTPS; staff RPC 42702 fixed by migration; real dashboard counts, user detail, 14-row internal scroll, member/owner staff-denial checks, live QA flows and attachment upload passed; admin/browser consoles empty.
 - Durable message replies and threads: DONE — live Supabase migrations; private-reply permission is off by default, can be granted/revoked, and is enforced on the RPC; member privacy/thread-moderation/RLS checks pass; authenticated browser create/reply/thread/refresh passes with empty console at 1280/390 (`verification/live-message-relations-{1280,390}.png`).
