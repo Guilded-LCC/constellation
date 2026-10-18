@@ -71,7 +71,7 @@
   padding-top: 48px;
 }
 .s-nav h3 {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #989ba5;
   margin: 12px 28px 10px;
@@ -180,6 +180,7 @@
 }
 .s-role-choice.selected {
   background: #1e2025;
+  border-radius: 0;
 }
 .s-role-choice > span:last-child {
   overflow: hidden;
@@ -299,7 +300,11 @@
     #ff0065
   );
   flex: none;
-  overflow: hidden;
+  overflow: visible;
+}
+.s-rainbow > .s-color-end[data-id="color2"] + .s-color-popover {
+  right: 0;
+  left: auto;
 }
 .s-color-end {
   position: relative;
@@ -332,7 +337,7 @@
   align-items: center;
   gap: 7px;
   color: #c9cbd1;
-  font-size: 12px;
+  font-size: 14px;
 }
 .s-color-popover input {
   min-width: 0;
@@ -677,22 +682,22 @@
     padding-top: 24px;
   }
   .s-nav h3 {
-    font-size: 10px;
+    font-size: 14px;
     margin: 12px 10px;
   }
   .s-nav button {
-    font-size: 12px;
+    font-size: 14px;
     padding: 10px;
   }
   .s-nav footer {
     padding: 14px 8px;
   }
   .s-nav .s-save {
-    font-size: 11px;
+    font-size: 14px;
     padding: 12px 4px;
   }
   .s-nav .s-cancel {
-    font-size: 11px;
+    font-size: 14px;
   }
   .s-content {
     padding: 24px 14px 40px;
@@ -725,16 +730,16 @@
     margin: 12px 0;
   }
   .s-add-role {
-    font-size: 12px;
+    font-size: 14px;
   }
   .s-role-choice {
     min-height: 30px;
     padding: 3px 5px;
-    font-size: 13px;
+    font-size: 16px;
   }
   .s-role-glyph {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
   }
   .s-role-glyph .i,
   .s-role-glyph img {
@@ -745,11 +750,11 @@
     width: 100%;
   }
   .s-role-form h3 {
-    font-size: 14px;
-    margin-top: 26px;
+    font-size: 16px;
+    margin: 24px 0 10px;
   }
   .s-segments button {
-    font-size: 12px;
+    font-size: 14px;
     padding: 8px 9px;
   }
   .s-segments b {
@@ -768,10 +773,10 @@
     gap: 12px;
   }
   .s-toggle-row strong {
-    font-size: 12px;
+    font-size: 16px;
   }
   .s-toggle-row small {
-    font-size: 11px;
+    font-size: 14px;
   }
   .s-toggle-row {
     gap: 10px;
@@ -790,11 +795,11 @@
     top: -2px;
   }
   .s-outline {
-    font-size: 11px;
+    font-size: 14px;
     padding: 8px 9px !important;
   }
   .s-remove {
-    font-size: 12px;
+    font-size: 14px;
   }
   .s-icon-tools {
     gap: 8px;
@@ -819,5 +824,10 @@
   }
   .s-record button {
     font-size: 10px;
+  }
+}
+@media (max-width: 420px) {
+  .s-shell {
+    grid-template-columns: 136px minmax(0, 1fr);
   }
 }
