@@ -24,7 +24,7 @@ h1,h2,h3,p{margin-top:0}small,.muted{color:var(--muted)}
 .rail .brand,.rail .brand.active{background:var(--gold);color:#1e2022}.rail .divider{flex:none;width:32px;height:1px;margin:2px 0;background:var(--line)}
 .rail .rail-bottom{margin-top:auto}.rail .orb img{width:100%;height:100%;object-fit:cover;border-radius:8px}.rail .orb .avatar{width:38px;height:38px}
 .sidebar{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--sidebar);border-right:1px solid #191b20}
-.serverhead{position:relative;display:flex;align-items:end;min-height:98px;padding:0;background:radial-gradient(circle at 18% 12%,#d7a91f55 0 2px,transparent 3px),radial-gradient(circle at 78% 30%,#ffffff18 0 1px,transparent 2px),linear-gradient(145deg,#47424a,#242830 72%);background-size:54px 54px,38px 38px,auto;border-bottom:1px solid #191b20}
+.serverhead{position:relative;display:flex;align-items:end;min-height:98px;padding:0;background:#292c33;border-bottom:1px solid #191b20}
 .serverhead.has-banner{background-size:cover;background-position:center}.serverhead.has-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#15171bd9,transparent 90%)}
 .serverhead>button{position:relative;display:flex;align-items:center;gap:8px;width:100%;padding:12px 13px;background:transparent;text-align:left;font-weight:700}
 .serverhead>button:hover{background:#ffffff12}.serverhead .server-avatar{display:grid;place-items:center;width:37px;height:37px;flex:none;background:var(--gold);color:#222;font-size:18px;font-weight:800;border-radius:7px;overflow:hidden}
