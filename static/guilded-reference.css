@@ -136,3 +136,16 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .invite-server-mark img{width:90px;height:90px;border-radius:7px;object-fit:cover}
 .invite-close{position:absolute;z-index:3;top:8px;right:8px;display:none}
 @media(max-width:560px){dialog.invite-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.invite-preview-shell{grid-template-columns:minmax(0,1fr);min-height:0}.invite-preview-copy{padding:46px 24px 20px}.invite-preview-art{min-height:120px;border-top:1px solid #454852;border-left:0}.invite-server-mark{width:88px;height:88px;font-size:38px}.invite-server-mark img{width:62px;height:62px}.invite-dialog .modalhead{padding:8px}.invite-dialog .modalhead .icon-button{background:#ffffff12}}
+.mention-trigger{flex:none;width:28px;height:28px;color:#aeb1ba;font-size:19px;font-weight:600;line-height:1}
+.mention-trigger:hover{color:#f4f4f5;background:#ffffff12}
+.mention-feed{display:grid;gap:6px}
+.mention-entry{display:block;width:100%;padding:11px 12px;border-radius:4px;background:#2b2e35;text-align:left}
+.mention-entry:hover{background:#3b3e48}
+.mention-entry strong,.mention-entry small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mention-entry strong{color:#eeeef0;font-size:14px}
+.mention-entry small{margin-top:4px;color:#a6a9b2;font-size:12px}
+.mention-entry p{margin:8px 0 0;color:#c5c7ce;font-size:14px;white-space:normal;overflow-wrap:anywhere}
+.activity-empty{padding:26px 14px;text-align:center}
+.activity-empty>strong{font-size:16px}
+.activity-empty p{margin:7px 0 0;font-size:13px}
+.message.mention-highlight{background:#4a4d57;box-shadow:0 0 0 2px #f5c400;transition:background .25s,box-shadow .25s}

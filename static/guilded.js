@@ -472,7 +472,7 @@
     const customStatus = statusText || statusEmoji
       ? `<small>${statusEmoji ? `<span class="custom-status-emoji">${escapeHtml(statusEmoji)}</span>` : ""}${statusText ? escapeHtml(statusText) : ""}</small>`
       : "";
-    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong>${customStatus}</span><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
+    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong>${customStatus}</span><button class="icon-button mention-trigger" data-action="activity" title="Activity log" aria-label="Activity log">@</button><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
   }
   function memberList() {
     const server = current();
@@ -971,10 +971,24 @@
         return;
       }
       if (action === "activity") {
-        const recent = (state.servers || []).flatMap((server) => (server.announcements || []).map((item) => ({ ...item, server: server.name }))).slice(0, 10);
-        show("Recent activity", recent.length
-          ? recent.map((item) => `<article class="activity-entry"><strong>${escapeHtml(item.server)}</strong><p>${escapeHtml(item.body || "Announcement")}</p><small>${dayLabel(item.created)}</small></article>`).join("")
-          : '<p class="muted">You’re all caught up.</p>');
+        const mentions = await rpc("app_mention_feed");
+        show("Activity log", mentions.length
+          ? `<div class="mention-feed">${mentions.map((item) => `<button class="mention-entry" data-action="mention-open" data-server="${item.server_id}" data-channel="${item.channel_id}" data-message="${item.message_id}"><strong>${escapeHtml(item.author?.name || "Member")} mentioned you in #${escapeHtml(item.channel_name)}</strong><small>${escapeHtml(item.server_name)} · ${new Date(item.created_at).toLocaleString()}</small><p>${escapeHtml(item.body)}</p></button>`).join("")}</div>`
+          : '<div class="activity-empty"><strong>You’re all caught up.</strong><p class="muted">Mentions in channels you can view will appear here.</p></div>');
+        return;
+      }
+      if (action === "mention-open") {
+        sid = button.dataset.server;
+        cid = button.dataset.channel;
+        dm = null;
+        page = "chat";
+        closeModal();
+        render();
+        await loadMessages();
+        const targetMessage = document.querySelector(`[data-message="${button.dataset.message}"]`);
+        targetMessage?.scrollIntoView({ block: "center", behavior: "smooth" });
+        targetMessage?.classList.add("mention-highlight");
+        window.setTimeout(() => targetMessage?.classList.remove("mention-highlight"), 1800);
         return;
       }
       if (action === "server") {
