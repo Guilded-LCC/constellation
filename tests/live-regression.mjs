@@ -54,7 +54,7 @@ async function expectDenied(fn, label) {
 
 if (process.env.RELATIONS_ONLY === "1") {
   const owner = await magicToken(ownerEmail), member = await magicToken(memberEmail);
-  let serverId = null, browser;
+  let serverId = null, browser, botProfileId = null;
   const storagePaths = [];
   const browserErrors = [];
   try {
@@ -107,6 +107,22 @@ if (process.env.RELATIONS_ONLY === "1") {
     const originalRoles = state.servers.find((item) => item.id === serverId).roles;
     await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: originalRoles });
     await expectDenied(() => relations(member.access_token, "reply/create", { channel: channel.id, message: root.id, body: "private after revoke", private: true }), "private reply after permission revoke");
+    const memberId = (await rpc(member.access_token, "app_state")).user.id;
+    const selfBotWrite = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${memberId}`, {
+      method: "PATCH",
+      headers: { apikey: anonKey, Authorization: `Bearer ${member.access_token}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ is_bot: true }),
+    });
+    assert(!selfBotWrite.ok, "normal member must not be able to set their own is_bot flag");
+    const grantBotFlag = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${memberId}`, {
+      method: "PATCH",
+      headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ is_bot: true }),
+    });
+    assert(grantBotFlag.ok, `service-role bot flag setup failed (HTTP ${grantBotFlag.status})`);
+    botProfileId = memberId;
+    assert.equal((await rpc(member.access_token, "app_state")).user.is_bot, true, "profile bot flag should be returned in app_state");
+    const botMessage = await rpc(member.access_token, "app_api", { p_action: "message/send", p_payload: { channel: channel.id, body: "BOT badge render regression" } });
     const thread = await relations(owner.access_token, "thread/create", { channel: channel.id, message: root.id });
     await relations(member.access_token, "thread/reply", { channel: channel.id, thread: thread.id, body: "member thread reply" });
     assert.equal((await relations(owner.access_token, "thread/open", { channel: channel.id, thread: thread.id })).replies.length, 1);
@@ -170,6 +186,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.setViewportSize({ width: 1280, height: 800 });
     passed.push("live navigation rail, server Invite/Settings and overview RSVP persisted across hard refresh");
     await page.locator(`.channel[data-id="${channel.id}"]`).click();
+    await page.locator(`.message[data-message="${botMessage.id}"] .bot-badge`).waitFor();
     const row = page.locator(`.message[data-message="${root.id}"]`);
     await row.locator(".message-reply-preview").filter({ hasText: "public reply" }).waitFor();
     await row.locator(".message-reply-preview").filter({ hasText: "owner-only private reply" }).waitFor();
@@ -193,9 +210,11 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.screenshot({ path: "verification/live-message-relations-390.png" });
     assert.equal(browserErrors.length, 0, browserErrors.join(" | "));
     console.log("PASS live relation security: private replies hidden and rejected; thread moderation enforced; tables isolated");
+    console.log("PASS live bot profile: member self-write denied, platform-service setup allowed, app_state and message BOT badge rendered");
     console.log("PASS live browser: public/private previews, reply composer, thread detail, hard-refresh persistence, 1280/390, empty console");
   } finally {
     if (browser) await browser.close();
+    if (botProfileId) await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${botProfileId}`, { method: "PATCH", headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ is_bot: false }) }).catch(() => {});
     for (const path of storagePaths) await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }).catch(() => {});
     if (serverId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: serverId } }).catch(() => {});
   }
