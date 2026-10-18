@@ -18,7 +18,7 @@
     const text = error?.message || "The request could not be completed.";
     if (/not found/i.test(text)) return "This staff page is unavailable.";
     if (/permission|not authorized/i.test(text)) return "Your staff role does not allow this action.";
-    if (/reason/i.test(text)) return "Enter a reason before applying this action.";
+    if (/a reason is required|add a reason|enter a reason/i.test(text)) return "Enter a reason before applying this action.";
     return "Could not save those changes. Please try again.";
   };
   const button = (action, label, extra = "") => `<button class="staff-button ${extra}" data-staff-action="${action}">${esc(label)}</button>`;
