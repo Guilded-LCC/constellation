@@ -56,6 +56,7 @@
     trophy: "M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H3v2a4 4 0 0 0 4 4M17 6h4v2a4 4 0 0 1-4 4M8 4V2h8v2",
     compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM15.5 8.5l-2 5-5 2 2-5 5-2Z",
     sparkles: "m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3ZM19 14l1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z",
+    star: "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z",
   };
   const icon = (name, size = "") =>
     `<svg class="i ${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.hash}"/></svg>`;
@@ -100,6 +101,8 @@
     editingChannel = null,
     editingCategory = null,
     collapsed = {},
+    uiPreferences = {},
+    favoriteServers = new Set(),
     preferencesLoaded = false,
     membersVisible = true,
     overviewInfo = { serverId: null, createdAt: null, events: [], loading: false },
@@ -119,6 +122,14 @@
   }
   function current() {
     return state?.servers?.find((server) => server.id === sid);
+  }
+  async function saveUiPreferences() {
+    uiPreferences = {
+      ...uiPreferences,
+      collapsed: Object.keys(collapsed).filter((id) => collapsed[id]),
+      favorite_servers: [...favoriteServers],
+    };
+    await rpc("app_ui_state", { p_data: uiPreferences });
   }
   async function loadOverviewInfo(server) {
     if (!server?.id || overviewInfo.serverId === server.id || overviewInfo.loading) return;
@@ -371,8 +382,14 @@
     }
     if (!preferencesLoaded) {
       const preferences = await rpc("app_ui_state", { p_data: null });
+      uiPreferences = preferences || {};
       collapsed = Object.fromEntries(
         (preferences?.collapsed || []).map((id) => [id, true]),
+      );
+      favoriteServers = new Set(
+        (preferences?.favorite_servers || []).filter((id) =>
+          state.servers.some((server) => server.id === id),
+        ),
       );
       preferencesLoaded = true;
     }
@@ -390,7 +407,7 @@
     if (page === "chat") await loadMessages();
   }
   function rail() {
-    return `<nav class="rail" aria-label="Navigation"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Direct messages" aria-label="Direct messages">${icon("chat")}</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server" aria-label="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="achievements" title="Badges and achievements" aria-label="Badges and achievements">${icon("trophy")}</button><button class="orb" data-action="friends" title="Friends" aria-label="Friends">${icon("users")}</button><button class="orb" data-action="join-server" title="Discover or join a server" aria-label="Discover or join a server">${icon("compass")}</button><div class="divider"></div><button class="orb" data-action="activity" title="Activity" aria-label="Activity">${icon("sparkles")}</button></nav>`;
+    return `<nav class="rail" aria-label="Navigation"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Direct messages" aria-label="Direct messages">${icon("chat")}</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""} ${favoriteServers.has(server.id) ? "favorite" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}" aria-label="${escapeHtml(server.name)}${favoriteServers.has(server.id) ? ", favorite" : ""}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server" aria-label="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="achievements" title="Badges and achievements" aria-label="Badges and achievements">${icon("trophy")}</button><button class="orb" data-action="friends" title="Friends" aria-label="Friends">${icon("users")}</button><button class="orb" data-action="join-server" title="Discover or join a server" aria-label="Discover or join a server">${icon("compass")}</button><div class="divider"></div><button class="orb" data-action="activity" title="Activity" aria-label="Activity">${icon("sparkles")}</button></nav>`;
   }
   function serverHeader(server) {
     if (!server)
@@ -750,6 +767,7 @@
       rect = $(".serverhead").getBoundingClientRect(),
       items = [
         { label: "Invite people", action: "invite", icon: "invite" },
+        { label: favoriteServers.has(s.id) ? "Remove from favorites" : "Add to favorites", action: "favorite-server", icon: "star", id: s.id },
         { label: "Settings", action: "settings", icon: "settings" },
         { label: "Audit log", action: "audit-page", icon: "audit" },
       ];
@@ -993,11 +1011,7 @@
       }
       if (action === "toggle-category") {
         collapsed[id] = !collapsed[id];
-        await rpc("app_ui_state", {
-          p_data: {
-            collapsed: Object.keys(collapsed).filter((key) => collapsed[key]),
-          },
-        });
+        await saveUiPreferences();
         render();
         return;
       }
@@ -1240,6 +1254,13 @@
       }
       if (action === "server-menu") {
         serverMenu();
+        return;
+      }
+      if (action === "favorite-server") {
+        if (favoriteServers.has(id)) favoriteServers.delete(id);
+        else favoriteServers.add(id);
+        await saveUiPreferences();
+        render();
         return;
       }
       if (action === "owner-leave-info") {

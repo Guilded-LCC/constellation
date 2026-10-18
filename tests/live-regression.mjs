@@ -57,7 +57,9 @@ if (process.env.RELATIONS_ONLY === "1") {
   let serverId = null, browser, botProfileId = null;
   const storagePaths = [];
   const browserErrors = [];
+  let originalUiPreferences = null;
   try {
+    originalUiPreferences = await rpc(owner.access_token, "app_ui_state", { p_data: null });
     const server = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Relations QA ${Date.now()}` } });
     serverId = server.id;
     const state = await rpc(owner.access_token, "app_state");
@@ -147,6 +149,9 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(".serverhead-title").click();
+    await page.locator(`.context-menu [data-action="favorite-server"][data-id="${serverId}"]`).click();
+    await page.locator(`.rail .orb[data-id="${serverId}"].favorite`).waitFor();
     await page.locator(".serverhead-actions [data-action='invite']").waitFor();
     await page.locator(".serverhead-actions [data-action='settings']").waitFor();
     await page.locator(".serverhead-actions [data-action='invite']").click();
@@ -170,6 +175,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"].selected`).waitFor();
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
+    await page.locator(`.rail .orb[data-id="${serverId}"].favorite`).waitFor();
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
     await page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"].selected`).waitFor();
     assert.equal(await page.locator(".rail [data-action='friends']").count(), 1);
@@ -214,6 +220,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     console.log("PASS live browser: public/private previews, reply composer, thread detail, hard-refresh persistence, 1280/390, empty console");
   } finally {
     if (browser) await browser.close();
+    if (originalUiPreferences) await rpc(owner.access_token, "app_ui_state", { p_data: originalUiPreferences }).catch(() => {});
     if (botProfileId) await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${botProfileId}`, { method: "PATCH", headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ is_bot: false }) }).catch(() => {});
     for (const path of storagePaths) await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }).catch(() => {});
     if (serverId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: serverId } }).catch(() => {});
