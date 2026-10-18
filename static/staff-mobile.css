@@ -11,3 +11,14 @@
   .staff-identity { grid-area: identity; margin: 0; font-size: 12px; }
   .staff-return { grid-area: return; font-size: 12px; white-space: nowrap; }
 }
+
+.staff-user-results {
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+}
+
+@media (max-width: 760px) {
+  .staff-user-results { max-height: calc(100vh - 255px); }
+}
