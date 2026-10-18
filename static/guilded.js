@@ -92,6 +92,7 @@
     collapsed = {},
     preferencesLoaded = false,
     membersVisible = true,
+    overviewInfo = { serverId: null, createdAt: null, events: [], loading: false },
     pollBusy = false,
     pendingRender = false,
     registration = false,
@@ -108,6 +109,33 @@
   }
   function current() {
     return state?.servers?.find((server) => server.id === sid);
+  }
+  async function loadOverviewInfo(server) {
+    if (!server?.id || overviewInfo.serverId === server.id || overviewInfo.loading) return;
+    overviewInfo = { serverId: server.id, createdAt: server.created_at || null, events: [], loading: true };
+    const calendarChannels = (server.channels || []).filter((channel) => String(channel.type).toUpperCase() === "CALENDAR");
+    const dateRequest = rpc("app_settings", {
+      p_server: server.id,
+      p_action: "read",
+      p_data: {},
+    }).catch(() => null);
+    const [dateResult, ...calendarResults] = await Promise.all([
+      dateRequest,
+      ...calendarChannels.map(async (channel) => {
+        try { return await rpc("app_feature_state", { p_channel: channel.id }); }
+        catch { return {}; }
+      }),
+    ]);
+    const events = calendarResults.flatMap((result) => Array.isArray(result?.events) ? result.events : [])
+      .filter((event) => Number.isFinite(Date.parse(event.starts_at)) && Date.parse(event.starts_at) >= Date.now())
+      .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
+    overviewInfo = {
+      serverId: server.id,
+      createdAt: dateResult?.server?.created_at || server.created_at || null,
+      events,
+      loading: false,
+    };
+    if (current()?.id === server.id && page === "overview") render();
   }
   function normalizeState(data) {
     const array = (value) =>
@@ -334,6 +362,7 @@
       sid = state.servers[0].id;
       page = "overview";
     }
+    if (page === "overview" && current()) loadOverviewInfo(current());
     if (renderAll) render();
     if (page === "chat") await loadMessages();
   }
@@ -380,7 +409,12 @@
   }
   function sidebar() {
     const server = current();
-    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong><small>${escapeHtml(state.user.custom_status || "")}</small></span><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
+    const statusText = state.user?.custom_status || "";
+    const statusEmoji = state.user?.custom_status_emoji || state.user?.status_emoji || "";
+    const customStatus = statusText || statusEmoji
+      ? `<small>${statusEmoji ? `<span class="custom-status-emoji">${escapeHtml(statusEmoji)}</span>` : ""}${statusText ? escapeHtml(statusText) : ""}</small>`
+      : "";
+    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong>${customStatus}</span><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
   }
   function memberList() {
     const server = current();
@@ -396,7 +430,8 @@
     const rank = (id) =>
       id === "Offline" ? 10001 : id === "Member" ? 10000 : roles.findIndex((r) => r.id === id);
     const ordered = [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b));
-    return `<aside class="members" aria-label="Members"><div class="member-tabs"><button class="active" aria-label="Members" title="Members">${icon("users")}</button><button disabled aria-label="Threads unavailable" title="Message threads are not available yet">${icon("list")}</button></div>${ordered
+    const about = page === "overview" ? `<section class="overview-about"><h2>About</h2><p><strong>${members.length}</strong> ${members.length === 1 ? "member" : "members"}</p><p>Created ${overviewInfo.createdAt ? new Date(overviewInfo.createdAt).toLocaleDateString() : "date unavailable"}</p></section>` : "";
+    return `<aside class="members" aria-label="Members"><div class="member-tabs"><button class="active" aria-label="Members" title="Members">${icon("users")}</button><button disabled aria-label="Threads unavailable" title="Message threads are not available yet">${icon("list")}</button></div>${about}${ordered
       .map(
         ([id, people]) =>
           `<section class="member-group"><h2>${people.length} ${escapeHtml(roles.find((r) => r.id === id)?.name || id)}</h2>${people
@@ -415,7 +450,8 @@
     const banner = safeMedia(s?.banner_url),
       avatarUrl = safeMedia(s?.avatar_url),
       latest = s?.announcements || [];
-    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div></section></div>`;
+    const events = overviewInfo.serverId === s?.id ? overviewInfo.events : [];
+    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div><div class="announcements-heading upcoming-heading"><h2>Upcoming events</h2></div><div class="overview-cards upcoming-events">${events.length ? events.slice(0, 5).map((event) => `<article class="overview-card"><h3>${escapeHtml(event.title || "Event")}</h3><p>${new Date(event.starts_at).toLocaleString()}</p><small>${escapeHtml(event.description || "")}</small></article>`).join("") : '<p class="muted">No upcoming events</p>'}</div></section></div>`;
   }
   function chatView() {
     const s = current(),
@@ -495,6 +531,7 @@
       return;
     }
     const server = current();
+    if (page === "overview" && server && overviewInfo.serverId !== server.id && !overviewInfo.loading) loadOverviewInfo(server);
     if (page === "chat" && !dm && !server) {
       page = "home";
       cid = null;

@@ -10,7 +10,7 @@
     ["staff", "Staff"],
     ["audit", "Audit log"],
   ];
-  let rpc, user, loadedFor = null, page = "dashboard", data = null, badgeOptions = [], selectedUser = null, selectedServer = null, staffSearchResults = [], query = "", status = "open", busy = false, loadError = "";
+  let rpc, user, loadedFor = null, page = "dashboard", data = null, badgeOptions = [], selectedUser = null, selectedUserId = null, selectedServer = null, staffSearchResults = [], query = "", status = "open", busy = false, loadError = "";
   const root = () => document.querySelector("#app");
   const call = (action, payload = {}) => rpc("staff_action", { p_action: action, p_payload: payload });
   const errorText = (error) => {
@@ -37,7 +37,24 @@
   function users() {
     const rows = data || [];
     const selected = selectedUser;
-    return `${searchBox("Search username or email", "users")}${rows.length ? `<div class="staff-records">${rows.map((item) => record(item.name || item.username, `${item.email} · joined ${new Date(item.created_at).toLocaleDateString()}${item.suspended ? " · suspended" : ""}`, "user", item.id)).join("")}</div>` : `<p class="staff-empty">Search for a user to review their account.</p>`}${selected ? `<section class="staff-detail"><div class="staff-detail-head"><div><h2>${esc(selected.profile?.name || selected.profile?.username || "User")}</h2><p>${esc(selected.email)} · joined ${new Date(selected.created_at).toLocaleDateString()}</p></div>${selected.suspension ? `<span class="staff-tag danger">Suspended</span>` : `<span class="staff-tag">Active</span>`}</div><div class="staff-detail-grid"><div><h3>Badges</h3><div class="staff-chip-list">${(selected.badges || []).map((badge) => `<span class="staff-tag">${esc(badge)}${badge !== "staff" ? `<button aria-label="Revoke ${esc(badge)}" data-staff-action="badge-revoke" data-id="${esc(badge)}">×</button>` : ""}</span>`).join("") || `<span class="staff-empty">No badges</span>`}</div><div class="staff-inline"><select id="staff-badge-select">${badgeOptions.map((badge) => `<option value="${esc(badge.id)}">${esc(badge.name)}</option>`).join("")}</select>${button("badge-grant", "Grant badge")}</div><h3>Servers</h3>${(selected.servers || []).map((server) => `<p class="staff-line">${esc(server.name)} <small>· ${new Date(server.created_at).toLocaleDateString()}</small></p>`).join("") || `<p class="staff-empty">No servers</p>`}</div><div><h3>Moderation</h3>${selected.suspension ? `<p class="staff-reason">${esc(selected.suspension.reason)}</p>${button("user-unsuspend", "Lift suspension", "subtle")}` : `${label("Reason for suspension")}<textarea id="staff-user-reason" maxlength="1000" placeholder="Required; visible to the affected user"></textarea>${button("user-suspend", "Suspend account", "danger")}`}${selected.reports ? `<p class="staff-line">${selected.reports} related report(s)</p>` : ""}${user?.is_platform_admin ? `<h3>Platform staff</h3><div class="staff-inline"><select id="staff-level"><option value="staff" ${selected.staff_level === "staff" ? "selected" : ""}>Staff</option><option value="admin" ${selected.staff_level === "admin" ? "selected" : ""}>Admin</option></select>${button(selected.is_staff ? "staff-revoke-user" : "staff-grant-user", selected.is_staff ? "Remove staff" : "Add staff")}</div>` : ""}</div></div></section>` : ""}`;
+    return `${searchBox("Search username or email", "users")}${rows.length ? `<div class="staff-records staff-user-results">${rows.map((item) => record(item.name || item.username, `${item.email} · joined ${new Date(item.created_at).toLocaleDateString()}${item.suspended ? " · suspended" : ""}`, "user", item.id)).join("")}</div>` : `<p class="staff-empty">Search for a user to review their account.</p>`}${selected ? `<section class="staff-detail"><div class="staff-detail-head"><div><h2>${esc(selected.profile?.name || selected.profile?.username || "User")}</h2><p>@${esc(selected.profile?.username || "unknown")} · ${esc(selected.email)} · joined ${selected.created_at ? new Date(selected.created_at).toLocaleDateString() : "date unavailable"}</p>${selected.profile?.bio ? `<p>${esc(selected.profile.bio)}</p>` : ""}</div><div class="staff-inline">${selected.suspension ? `<span class="staff-tag danger">Suspended</span>` : `<span class="staff-tag">Active</span>`}${button("user-close", "Back to users", "subtle")}</div></div><div class="staff-detail-grid"><div><h3>Badges</h3><div class="staff-chip-list">${(selected.badges || []).map((badge) => `<span class="staff-tag">${esc(badge)}${badge !== "staff" ? `<button aria-label="Revoke ${esc(badge)}" data-staff-action="badge-revoke" data-id="${esc(badge)}">×</button>` : ""}</span>`).join("") || `<span class="staff-empty">No badges</span>`}</div><div class="staff-inline"><select id="staff-badge-select">${badgeOptions.map((badge) => `<option value="${esc(badge.id)}">${esc(badge.name)}</option>`).join("")}</select>${button("badge-grant", "Grant badge")}</div><h3>Servers</h3>${(selected.servers || []).map((server) => `<p class="staff-line">${esc(server.name)} <small>· ${server.owner ? "Owner" : "Member"}${server.created_at ? ` · ${new Date(server.created_at).toLocaleDateString()}` : ""}</small></p>`).join("") || `<p class="staff-empty">No servers</p>`}</div><div><h3>Moderation</h3>${selected.suspension ? `<p class="staff-reason">${esc(selected.suspension.reason)}</p>${button("user-unsuspend", "Lift suspension", "subtle")}` : `${label("Reason for suspension")}<textarea id="staff-user-reason" maxlength="1000" placeholder="Required; visible to the affected user"></textarea>${button("user-suspend", "Suspend account", "danger")}`}${selected.reports ? `<p class="staff-line">${selected.reports} related report(s)</p>` : ""}${(selected.reportItems || []).map((report) => `<p class="staff-line">${esc(report.reason)} <small>· ${esc(report.status)} · ${new Date(report.created_at).toLocaleDateString()}</small></p>`).join("")}${user?.is_platform_admin ? `<h3>Platform staff</h3><div class="staff-inline"><select id="staff-level"><option value="staff" ${selected.staff_level === "staff" ? "selected" : ""}>Staff</option><option value="admin" ${selected.staff_level === "admin" ? "selected" : ""}>Admin</option></select>${button(selected.is_staff ? "staff-revoke-user" : "staff-grant-user", selected.is_staff ? "Remove staff" : "Add staff")}</div>` : ""}</div></div></section>` : ""}`;
+  }
+  async function openUser(id) {
+    selectedUserId = id;
+    const [detail, serverRows, reportRows] = await Promise.all([
+      call("user/get", { user_id: id }),
+      call("servers/search", { query: "" }),
+      call("reports", { status: null }),
+    ]);
+    if (!detail) throw new Error("The user detail was not returned.");
+    const memberships = Array.isArray(detail.servers) ? detail.servers : [];
+    const owned = (Array.isArray(serverRows) ? serverRows : [])
+      .filter((server) => server.owner?.id === id)
+      .map((server) => ({ ...server, owner: true }));
+    detail.profile = detail.profile || {};
+    detail.servers = [...new Map([...memberships, ...owned].map((server) => [server.id, server])).values()];
+    detail.reportItems = (Array.isArray(reportRows) ? reportRows : []).filter((report) => report.target_user === id);
+    selectedUser = detail;
   }
   function servers() {
     const rows = data || [];
@@ -70,13 +87,12 @@
       if (page === "badges") data = await call("badges/list");
       if (page === "staff") data = await call("staff/list");
       if (page === "audit") data = await call("audit", { query });
-      if (page === "users" && selectedUser?.profile?.id) selectedUser = await call("user/get", { user_id: selectedUser.profile.id });
+      if (page === "users" && selectedUserId) await openUser(selectedUserId);
       if (page === "servers" && selectedServer?.server?.id) selectedServer = await call("server/get", { server_id: selectedServer.server.id });
       loadError = "";
     } catch (error) {
       data = null;
       loadError = errorText(error);
-      console.error("[Constellation staff]", error);
     } finally { busy = false; }
     render();
   }
@@ -91,16 +107,17 @@
   }
   async function act(action, id, buttonEl) {
     try {
-      if (action === "nav") { page = buttonEl.dataset.page; data = null; selectedUser = selectedServer = null; staffSearchResults = []; await load(); return; }
+      if (action === "nav") { page = buttonEl.dataset.page; data = null; selectedUser = selectedServer = null; selectedUserId = null; staffSearchResults = []; await load(); return; }
       if (action === "refresh") { await load(); return; }
-      if (action === "user") { selectedUser = await call("user/get", { user_id: id }); render(); return; }
+      if (action === "user") { await openUser(id); render(); return; }
+      if (action === "user-close") { selectedUser = null; selectedUserId = null; render(); return; }
       if (action === "server") { selectedServer = await call("server/get", { server_id: id }); render(); return; }
-      if (action === "badge-grant") await call("user/badge", { user_id: selectedUser.profile.id, badge: root().querySelector("#staff-badge-select").value, enabled: true });
-      if (action === "badge-revoke") await call("user/badge", { user_id: selectedUser.profile.id, badge: id, enabled: false });
-      if (action === "user-suspend") await call("user/suspend", { user_id: selectedUser.profile.id, enabled: true, reason: root().querySelector("#staff-user-reason").value });
-      if (action === "user-unsuspend") await call("user/suspend", { user_id: selectedUser.profile.id, enabled: false });
-      if (action === "staff-grant-user") await call("staff/set", { user_id: selectedUser.profile.id, enabled: true, level: root().querySelector("#staff-level").value });
-      if (action === "staff-revoke-user") await call("staff/set", { user_id: selectedUser.profile.id, enabled: false });
+      if (action === "badge-grant") await call("user/badge", { user_id: selectedUserId, badge: root().querySelector("#staff-badge-select").value, enabled: true });
+      if (action === "badge-revoke") await call("user/badge", { user_id: selectedUserId, badge: id, enabled: false });
+      if (action === "user-suspend") await call("user/suspend", { user_id: selectedUserId, enabled: true, reason: root().querySelector("#staff-user-reason").value });
+      if (action === "user-unsuspend") await call("user/suspend", { user_id: selectedUserId, enabled: false });
+      if (action === "staff-grant-user") await call("staff/set", { user_id: selectedUserId, enabled: true, level: root().querySelector("#staff-level").value });
+      if (action === "staff-revoke-user") await call("staff/set", { user_id: selectedUserId, enabled: false });
       if (action === "server-flags") await call("server/flags", { server_id: selectedServer.server.id, verified: root().querySelector("#staff-verified").checked, partner: root().querySelector("#staff-partner").checked });
       if (action === "server-suspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: true, reason: root().querySelector("#staff-server-reason").value });
       if (action === "server-unsuspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: false });
