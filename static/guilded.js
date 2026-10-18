@@ -1966,7 +1966,7 @@
   });
   document.addEventListener("contextmenu", (event) => {
     const target = event.target.closest(
-      "[data-message],[data-channel],[data-category],.member[data-id],.orb[data-id],.serverhead,.nav",
+      "[data-message],[data-channel],[data-category],.member[data-id],.orb[data-id],.serverhead,.nav,.main,.profilebar,.server-list-panel",
     );
     if (!target || !state) return;
     event.preventDefault();
@@ -2053,6 +2053,17 @@
         { label: "Member profile", action: "member", icon: "users", id },
         { label: "Direct message", action: "dm-member", icon: "chat", id },
       ];
+    else if (target.classList.contains("profilebar"))
+      items = [
+        { label: "Edit profile", action: "profile", icon: "users" },
+        { label: "Activity log", action: "activity", icon: "sparkles" },
+        { label: "More account options", action: "user-menu", icon: "more" },
+      ];
+    else if (target.classList.contains("server-list-panel"))
+      items = [
+        { label: "Create a server", action: "create-server", icon: "plus" },
+        { label: "Join a server", action: "join-server", icon: "invite" },
+      ];
     else if (
       target.classList.contains("nav") &&
       current() &&
@@ -2067,6 +2078,12 @@
         { label: "Server settings", action: "settings", icon: "settings" },
         { label: "Invite people", action: "invite", icon: "invite" },
         { label: "Create category", action: "new-category", icon: "plus" },
+      ];
+    else
+      items = [
+        { label: "Start a direct message", action: "new-dm", icon: "chat" },
+        { label: "Create a server", action: "create-server", icon: "plus" },
+        { label: "Join a server", action: "join-server", icon: "invite" },
       ];
     if (items.length) menu(items, event.clientX, event.clientY);
   });

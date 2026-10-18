@@ -229,6 +229,13 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.evaluate(() => { document.querySelector(".context-menu")?.remove(); document.querySelector(".layout")?.classList.remove("shownav"); });
     await page.setViewportSize({ width: 1280, height: 800 });
     console.log("PASS live profile action menu: reference links and logout entries visible at desktop/mobile; destinations are explicitly handled");
+    await page.locator(".main").click({ button: "right", position: { x: 10, y: 140 } });
+    await page.locator(".context-menu").getByText("Server settings", { exact: true }).waitFor();
+    await page.keyboard.press("Escape");
+    await page.locator(".profilebar .profile-identity").click({ button: "right" });
+    await page.locator(".context-menu").getByText("Activity log", { exact: true }).waitFor();
+    await page.keyboard.press("Escape");
+    console.log("PASS right-click surfaces: blank server area opens server actions; profile panel opens account actions");
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
     await page.locator(".serverhead-title").click();
     await page.locator(`.context-menu [data-action="favorite-server"][data-id="${serverId}"]`).click();
