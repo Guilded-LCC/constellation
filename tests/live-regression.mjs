@@ -518,6 +518,17 @@ try {
   await page.screenshot({ path: "verification/live-message-menu-390.png" });
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.keyboard.press("Escape");
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: new URL(appUrl).origin });
+  await lastMessage.hover();
+  await lastMessage.locator('[data-action="message-menu"]').click();
+  await page.locator(".context-menu").getByText("Share message", { exact: true }).click();
+  await page.locator("#toast").filter({ hasText: "Message copied to clipboard." }).waitFor();
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "grouped message two");
+  await lastMessage.hover();
+  await lastMessage.locator('[data-action="message-menu"]').click();
+  await page.locator(".context-menu").getByText("Copy link", { exact: true }).click();
+  await page.locator("#toast").filter({ hasText: "Message link copied." }).waitFor();
+  assert((await page.evaluate(() => navigator.clipboard.readText())).includes(`#message-${groupedSecond.id}`));
   await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedFirst.id } });
   await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedSecond.id } });
   passed.push("message grouping, date divider, hover timestamp/toolbar and click/right-click menus");
