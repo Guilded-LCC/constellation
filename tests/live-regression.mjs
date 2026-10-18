@@ -590,9 +590,20 @@ try {
   await page.locator(".context-menu").getByText("Copy link", { exact: true }).click();
   await page.locator("#toast").filter({ hasText: "Message link copied." }).waitFor();
   assert((await page.evaluate(() => navigator.clipboard.readText())).includes(`#message-${groupedSecond.id}`));
+  const quickDeleteMessage = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: textChannel, body: "quick delete regression" } });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+  await page.locator(`.channel[data-id="${textChannel}"]`).click();
+  const quickDeleteRow = page.locator(`.message[data-message="${quickDeleteMessage.id}"]`);
+  await quickDeleteRow.waitFor();
+  await quickDeleteRow.hover();
+  await quickDeleteRow.locator('[data-action="quick-delete-message"]').click();
+  await quickDeleteRow.waitFor({ state: "detached" });
+  chat = await rpc(owner.access_token, "app_messages", { p_channel: textChannel, p_user: null });
+  assert(!chat.some((item) => item.id === quickDeleteMessage.id), "quick delete should remove the message immediately");
   await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedFirst.id } });
   await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedSecond.id } });
-  passed.push("message grouping, date divider, hover timestamp/toolbar and click/right-click menus");
+  passed.push("message grouping, date divider, hover timestamp/toolbar, click/right-click menus and quick delete");
 
   // Attach an object, bind it to a message, then check the message read path.
   const candidateStoragePath = `channels/${textChannel}/live-regression-${crypto.randomUUID()}.txt`;
