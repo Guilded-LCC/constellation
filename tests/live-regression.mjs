@@ -54,12 +54,19 @@ async function expectDenied(fn, label) {
 
 if (process.env.RELATIONS_ONLY === "1") {
   const owner = await magicToken(ownerEmail), member = await magicToken(memberEmail);
-  let serverId = null, browser, botProfileId = null;
+  let serverId = null, browser, botProfileId = null, ownerProfileId = null;
   const storagePaths = [];
   const browserErrors = [];
   let originalUiPreferences = null;
+  let originalCustomStatus = null, originalCustomStatusEmoji = null;
   try {
     originalUiPreferences = await rpc(owner.access_token, "app_ui_state", { p_data: null });
+    const ownerState = await rpc(owner.access_token, "app_state");
+    ownerProfileId = ownerState.user.id;
+    originalCustomStatus = ownerState.user.custom_status || "";
+    originalCustomStatusEmoji = ownerState.user.custom_status_emoji || "";
+    await rpc(owner.access_token, "app_profile_status", { p_text: "Temporary QA status", p_emoji: "🎧" });
+    assert.equal((await rpc(owner.access_token, "app_state")).user.custom_status, "Temporary QA status");
     const server = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Relations QA ${Date.now()}` } });
     serverId = server.id;
     const state = await rpc(owner.access_token, "app_state");
@@ -116,6 +123,12 @@ if (process.env.RELATIONS_ONLY === "1") {
       body: JSON.stringify({ is_bot: true }),
     });
     assert(!selfBotWrite.ok, "normal member must not be able to set their own is_bot flag");
+    const otherProfileWrite = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${ownerProfileId}`, {
+      method: "PATCH",
+      headers: { apikey: anonKey, Authorization: `Bearer ${member.access_token}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ custom_status: "unauthorized edit" }),
+    });
+    assert(!otherProfileWrite.ok, "a member must not be able to overwrite another profile status");
     const grantBotFlag = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${memberId}`, {
       method: "PATCH",
       headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json", Prefer: "return=representation" },
@@ -148,6 +161,20 @@ if (process.env.RELATIONS_ONLY === "1") {
     }, owner);
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
+    await page.locator(".profilebar [data-action='profile']").click();
+    await page.locator("#profile-custom-status").waitFor();
+    assert.equal(await page.locator("#profile-custom-status").inputValue(), "Temporary QA status");
+    await page.locator("#profile-custom-status").fill("Reviewing Guilded UI");
+    await page.locator("#profile-custom-emoji").fill("🎧");
+    await page.locator("#modal [data-action='save-profile']").click();
+    await page.locator(".profilebar").getByText("Reviewing Guilded UI", { exact: false }).waitFor();
+    await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(`.members .member[data-id="${ownerProfileId}"] .who small`).filter({ hasText: "Reviewing Guilded UI" }).waitFor();
+    await page.screenshot({ path: "verification/live-custom-status-1280.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: "verification/live-custom-status-390.png" });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    console.log("PASS live custom status: self-edit persists, appears in sidebar/member list, another member cannot change it");
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
     await page.locator(".serverhead-title").click();
     await page.locator(`.context-menu [data-action="favorite-server"][data-id="${serverId}"]`).click();
@@ -236,6 +263,7 @@ if (process.env.RELATIONS_ONLY === "1") {
   } finally {
     if (browser) await browser.close();
     if (originalUiPreferences) await rpc(owner.access_token, "app_ui_state", { p_data: originalUiPreferences }).catch(() => {});
+    if (ownerProfileId && originalCustomStatus !== null) await rpc(owner.access_token, "app_profile_status", { p_text: originalCustomStatus, p_emoji: originalCustomStatusEmoji }).catch(() => {});
     if (botProfileId) await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${botProfileId}`, { method: "PATCH", headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ is_bot: false }) }).catch(() => {});
     for (const path of storagePaths) await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }).catch(() => {});
     if (serverId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: serverId } }).catch(() => {});

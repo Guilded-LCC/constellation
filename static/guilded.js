@@ -860,9 +860,11 @@
     const user = state.user;
     show(
       "User settings",
-      `${field("profile-name", "Display name", user.name)}${field("profile-avatar", "Avatar character", user.avatar || "")}<label for="profile-bio">About me</label><textarea id="profile-bio">${escapeHtml(user.bio || "")}</textarea><label for="profile-status">Status</label><select id="profile-status">${["online", "idle", "dnd", "invisible"].map((status) => `<option ${status === user.status ? "selected" : ""}>${status}</option>`).join("")}</select><p class="notice">Badges: ${(user.badges || []).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "None"}</p><p class="notice">Status is selected manually.</p>`,
+      `${field("profile-name", "Display name", user.name)}${field("profile-avatar", "Avatar character", user.avatar || "")}<label for="profile-bio">About me</label><textarea id="profile-bio">${escapeHtml(user.bio || "")}</textarea>${field("profile-custom-status", "Custom status", user.custom_status || "")}<div class="status-emoji-field">${field("profile-custom-emoji", "Status emoji", user.custom_status_emoji || "")}</div><label for="profile-status">Presence</label><select id="profile-status">${["online", "idle", "dnd", "invisible"].map((status) => `<option ${status === user.status ? "selected" : ""}>${status}</option>`).join("")}</select><p class="notice">Badges: ${(user.badges || []).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "None"}</p>`,
       `<button class="secondary" data-action="logout">Sign out</button><button class="primary" data-action="save-profile">Save profile</button>`,
     );
+    $("#profile-custom-status").maxLength = 80;
+    $("#profile-custom-emoji").maxLength = 8;
   }
   async function mutate(action, payload, after) {
     await api(action, payload);
@@ -1637,12 +1639,19 @@
         return;
       }
       if (action === "save-profile") {
-        await mutate("profile", {
+        await api("profile", {
           name: value("profile-name"),
           avatar: value("profile-avatar") || state.user.avatar || "G",
           bio: value("profile-bio"),
           status: value("profile-status"),
         });
+        await rpc("app_profile_status", {
+          p_text: value("profile-custom-status"),
+          p_emoji: value("profile-custom-emoji"),
+        });
+        await refresh();
+        closeModal();
+        toast("Profile saved");
         return;
       }
       if (action === "logout") {
