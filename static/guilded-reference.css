@@ -204,6 +204,7 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .layout.legacy-nav .legacy-profilebar{display:flex;align-items:center;gap:8px;flex:none;margin-left:auto;padding-left:12px;border-left:1px solid #3a3d45}
 .layout.legacy-nav .legacy-profile{display:flex;align-items:center;gap:8px;min-width:142px;padding:3px 6px;text-align:left}
 .layout.legacy-nav .legacy-profile:hover,.layout.legacy-nav .legacy-profile:focus-visible{outline:3px solid #f5c400;outline-offset:1px;border-radius:12px;background:#ffffff08}
+.layout.legacy-nav .legacy-profilebar>.icon-button:hover,.layout.legacy-nav .legacy-profilebar>.icon-button:focus-visible{outline:3px solid #f5c400;outline-offset:1px;border-radius:10px;background:transparent;color:#fff}
 .layout.legacy-nav .legacy-profile-name{display:grid;min-width:0;gap:1px}
 .layout.legacy-nav .legacy-profile-name strong,.layout.legacy-nav .legacy-profile-name small{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .layout.legacy-nav .legacy-profile-name strong{font-size:13px}
