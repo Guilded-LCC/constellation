@@ -205,3 +205,17 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .layout.legacy-nav .legacy-profile-name small{font-size:11px;color:#a6a9b2}
 .layout.legacy-nav .legacy-profilebar .icon-button{flex:none;width:34px;height:34px}
 @media(max-width:700px){.layout.legacy-nav{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 50px}.layout.legacy-nav .rail{grid-column:1;grid-row:2}.layout.legacy-nav .main{grid-column:1;grid-row:1}.layout.legacy-nav .members{display:none}.layout.legacy-nav .legacy-profilebar{gap:4px;padding-left:6px}.layout.legacy-nav .legacy-profile{min-width:110px}.layout.legacy-nav .legacy-profile-name{display:none}.layout.legacy-nav .rail .rail-spacer{min-width:0}}
+
+/* Guilded-style default server banner: low-contrast repeating community iconography. */
+.overview-art {
+  background-color: #292b32;
+  background-image:
+    linear-gradient(180deg, #17191d22, #17191d08 55%, #17191d44),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='116' height='90' viewBox='0 0 116 90'%3E%3Cg fill='none' stroke='%23a5a8b1' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round' opacity='.5'%3E%3Cpath d='M8 18v-3a9 9 0 0 1 18 0v3M8 17H6v7h5v-7H8m18 0h2v7h-5v-7h3'/%3E%3Cpath d='M53 13h12l4 8-2 7-5-3h-6l-5 3-2-7 4-8Zm-1 8h5m-2-2v5m10-4h1m3 3h1'/%3E%3Cpath d='m98 12 12 3v8l-6 5-6-5v-8Zm4 7h4m-2-2v4'/%3E%3Cpath d='M15 57h8m-4-4v8m4-7 1 1-1 1m-2 3 1 1-1 1'/%3E%3Ccircle cx='65' cy='58' r='9'/%3E%3Cpath d='M65 53v10m-5-5h10M95 54l2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100% 100%, 116px 90px;
+}
+.overview-mark,
+.overview-art-icon,
+.overview-controller {
+  display: none;
+}
