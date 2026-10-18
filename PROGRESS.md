@@ -45,3 +45,4 @@
 - Task 2 platform admin/staff panel: PARTIAL — migration and standalone `/admin` UI authored; migration not applied or DB-negative tested because linked database access is unavailable here; localhost UI boundary and mocked layout smoke pass.
 - Task 3 Guilded visual pass: PARTIAL — refreshed rail/sidebar/member/chat styling and admin page previews pass at 1280/390 with empty browser console; authenticated visual comparison remains blocked by unavailable live sign-in, and Threads/replies/right-side detail panels remain gaps.
 - New session STEP 0: BLOCKED-EXTERNAL — no SUPABASE_DB_URL or SUPABASE_ACCESS_TOKEN; CLI can list the linked healthy project, but migration list and dry-run push both stall at “Initialising login role...” and were stopped; no migrations applied.
+- Latest STEP 0: BLOCKED-EXTERNAL — .env is ignored and absent from Git history; Node/pg connection attempt timed out before select version() completed; no migrations or live tests run.
