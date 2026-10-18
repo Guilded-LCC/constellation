@@ -79,7 +79,14 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .member .custom-status-emoji{margin-right:4px}
 .status-dot.offline{background:#8d9199}
 .bot-badge{display:inline-flex;align-items:center;margin-left:5px;padding:1px 4px;border-radius:3px;background:#6a6d78;color:#fff;font-size:9px;font-weight:800;line-height:1.25;vertical-align:2px}
-.overview-banner{height:210px;background-image:radial-gradient(ellipse at 25% 100%,#6a5a3c55,transparent 55%),radial-gradient(ellipse at 82% 0%,#55596544,transparent 48%),linear-gradient(120deg,#292b32,#373943,#252831);background-size:cover;background-repeat:no-repeat}
+.overview-banner{position:relative;isolation:isolate;overflow:hidden;height:210px;background-image:radial-gradient(ellipse at 25% 100%,#6a5a3c55,transparent 55%),radial-gradient(ellipse at 82% 0%,#55596544,transparent 48%),linear-gradient(120deg,#292b32,#373943,#252831);background-size:cover;background-repeat:no-repeat}
+.overview-art{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 51% 61%,#81703b30,transparent 34%),linear-gradient(180deg,#17191d33,#17191d08 55%,#17191d55)}
+.overview-mark{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);color:#f5c400;font-size:clamp(190px,25vw,330px);font-weight:850;line-height:.8;letter-spacing:-.12em;text-shadow:0 3px 0 #c99600,0 8px 16px #0007;opacity:.95}
+.overview-art-icon{position:absolute;display:grid;place-items:center;color:#d8d9dc;filter:drop-shadow(0 5px 8px #0008);opacity:.88}
+.overview-art-icon svg{width:clamp(27px,4vw,48px);height:clamp(27px,4vw,48px);stroke-width:2.2}
+.art-headphones{left:25%;top:43%;transform:rotate(-15deg)}.art-sparkles{left:39%;top:22%;color:#f6b7ef}.art-megaphone{right:22%;top:48%;transform:rotate(17deg);color:#f2b742}.art-trophy{right:34%;top:9%;transform:rotate(9deg);color:#f3c847}
+.overview-controller{position:absolute;left:70%;top:19%;width:clamp(72px,10vw,132px);height:auto;transform:rotate(-12deg);filter:drop-shadow(0 7px 10px #0008)}
+.controller-shell{fill:#f2b832;stroke:#ffd86a;stroke-width:2}.controller-detail{fill:none;stroke:#9c6814;stroke-width:3;stroke-linecap:round}
 .overview-body{max-width:none;margin:-54px auto 0;padding:0 clamp(22px,5vw,72px) 48px}
 .overview-avatar{width:104px;height:104px;border-radius:9px;font-size:46px}
 .overview-body h1{font-size:30px}
