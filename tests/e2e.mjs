@@ -19,6 +19,23 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => errors.push(error.message));
 
+await page.goto(url, { waitUntil: "networkidle" });
+if (await page.title() !== "Guilded" || !(await page.getByRole("heading", { name: "Welcome back" }).count())) {
+  await browser.close();
+  throw Error("The signed-out home should show the Guilded sign-in screen.");
+}
+await page.getByRole("button", { name: "Create an account" }).click();
+await page.getByRole("heading", { name: "Create an account" }).waitFor();
+await page.getByLabel("Username").waitFor();
+await page.screenshot({ path: path.join(output, "live-signup-1280.png") });
+await page.setViewportSize({ width: 390, height: 800 });
+if (await page.evaluate(() => document.documentElement.scrollWidth) !== 390) {
+  await browser.close();
+  throw Error("The signed-out signup screen overflows a 390px viewport.");
+}
+await page.screenshot({ path: path.join(output, "live-signup-390.png") });
+
+await page.setViewportSize({ width: 1280, height: 800 });
 await page.goto(`${url}/admin`, { waitUntil: "networkidle" });
 if (!(await page.getByRole("heading", { name: "This page does not exist" }).count())) {
   await browser.close();
