@@ -777,7 +777,9 @@
     el.innerHTML = items
       .map(
         (item) =>
-          `<button role="menuitem" class="${item.danger ? "danger" : ""}" data-action="${item.action}" ${item.id ? `data-id="${item.id}"` : ""} ${item.dir ? `data-dir="${item.dir}"` : ""}>${icon(item.icon, "sm")}${escapeHtml(item.label)}</button>`,
+          item.separator
+            ? '<div class="context-menu-divider" role="separator"></div>'
+            : `<button role="menuitem" class="${item.danger ? "danger" : ""}" data-action="${item.action}" ${item.id ? `data-id="${item.id}"` : ""} ${item.dir ? `data-dir="${item.dir}"` : ""}>${icon(item.icon, "sm")}${escapeHtml(item.label)}</button>`,
       )
       .join("");
     document.body.appendChild(el);
@@ -1335,6 +1337,7 @@
         );
         if (state.user?.is_platform_staff)
           entries.push({ label: "Staff panel", action: "staff-panel", icon: "shield" });
+        entries.push({ separator: true });
         entries.push({ label: "Log out", action: "logout", icon: "logout" });
         menu(entries, event.clientX, event.clientY);
         return;

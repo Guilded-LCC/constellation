@@ -141,6 +141,7 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .profilebar .profile-identity .who{flex:1;min-width:0}
 .mention-trigger{flex:none;width:28px;height:28px;color:#aeb1ba;font-size:19px;font-weight:600;line-height:1}
 .mention-trigger:hover{color:#f4f4f5;background:#ffffff12}
+.context-menu-divider{height:1px;margin:4px 3px;background:#3e4149}
 .mention-feed{display:grid;gap:6px}
 .mention-entry{display:block;width:100%;padding:11px 12px;border-radius:4px;background:#2b2e35;text-align:left}
 .mention-entry:hover{background:#3b3e48}

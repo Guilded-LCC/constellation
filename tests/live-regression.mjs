@@ -218,6 +218,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     for (const label of ["Support", "Feedback", "Blog", "Become a partner", "Follow us on social media", "We're hiring!", "Log out"]) {
       await page.locator(".context-menu").getByText(label, { exact: true }).waitFor();
     }
+    await page.locator(".context-menu [role='separator']").waitFor();
     await page.screenshot({ path: "verification/live-user-menu-1280.png" });
     await page.evaluate(() => document.querySelector(".context-menu")?.remove());
     await page.setViewportSize({ width: 390, height: 844 });
