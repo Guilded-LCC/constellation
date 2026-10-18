@@ -1505,7 +1505,14 @@
           entries.push({ label: "Staff panel", action: "staff-panel", icon: "shield" });
         entries.push({ separator: true });
         entries.push({ label: "Log out", action: "logout", icon: "logout" });
-        menu(entries, event.clientX, event.clientY);
+        const trigger = button.getBoundingClientRect();
+        menu(entries, trigger.left, trigger.top);
+        const accountMenu = document.querySelector(".context-menu");
+        accountMenu?.classList.add("account-menu");
+        if (accountMenu) {
+          accountMenu.style.left = `${Math.max(8, Math.min(trigger.left, innerWidth - accountMenu.offsetWidth - 8))}px`;
+          accountMenu.style.top = `${Math.max(8, trigger.top - accountMenu.offsetHeight - 8)}px`;
+        }
         return;
       }
       if (action === "guilded-resource") {

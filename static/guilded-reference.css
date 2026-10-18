@@ -175,6 +175,11 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .mention-trigger{flex:none;width:28px;height:28px;color:#aeb1ba;font-size:19px;font-weight:600;line-height:1}
 .mention-trigger:hover{color:#f4f4f5;background:#ffffff12}
 .context-menu-divider{height:1px;margin:4px 3px;background:#3e4149}
+.context-menu.account-menu{width:min(390px,calc(100vw - 16px));min-width:0;padding:10px;background:#4b4e59;border:1px solid #626570;border-radius:14px;box-shadow:0 14px 32px #0005}
+.context-menu.account-menu button{min-height:44px;padding:10px 14px;gap:14px;border-radius:6px;color:#f0f0f3;font-size:16px}
+.context-menu.account-menu button:hover,.context-menu.account-menu button:focus-visible{background:#ffffff12;outline:none}
+.context-menu.account-menu button svg{width:20px;height:20px;color:#b8bac3}
+.context-menu.account-menu .context-menu-divider{margin:8px 4px;background:#646671}
 .mention-feed{display:grid;gap:6px}
 .mention-entry{display:block;width:100%;padding:11px 12px;border-radius:4px;background:#2b2e35;text-align:left}
 .mention-entry:hover{background:#3b3e48}
