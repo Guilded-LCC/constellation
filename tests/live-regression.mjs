@@ -177,6 +177,28 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
     await page.locator(".profilebar [data-action='profile']").click();
+    await page.locator("#profile-legacy-nav").check();
+    await page.locator("#modal [data-action='save-profile']").click();
+    await page.locator(".layout.legacy-nav").waitFor();
+    assert.equal(await page.locator(".legacy-nav .rail").evaluate((el) => getComputedStyle(el).flexDirection), "row");
+    assert.equal(await page.locator(".legacy-nav .rail").evaluate((el) => Math.round(el.getBoundingClientRect().bottom)), 800);
+    await page.locator("#toast").waitFor({ state: "hidden" });
+    await page.screenshot({ path: "verification/live-legacy-navigation-1280.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => document.querySelector(".layout")?.classList.remove("shownav"));
+    await page.waitForTimeout(220);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+    await page.screenshot({ path: "verification/live-legacy-navigation-390.png" });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".layout.legacy-nav").waitFor();
+    await page.locator(".legacy-profilebar .legacy-profile").click();
+    assert.equal(await page.locator("#profile-legacy-nav").isChecked(), true);
+    await page.locator("#profile-legacy-nav").uncheck();
+    await page.locator("#modal [data-action='save-profile']").click();
+    await page.locator(".layout:not(.legacy-nav)").waitFor();
+    console.log("PASS live legacy navigation: Supabase preference survives refresh, horizontal bottom rail renders at 1280/390 without overflow");
+    await page.locator(".profilebar [data-action='profile']").click();
     await page.locator("#profile-custom-status").waitFor();
     assert.equal(await page.locator("#profile-custom-status").inputValue(), "Temporary QA status");
     await page.locator("#profile-custom-status").fill("Reviewing Guilded UI");
@@ -213,7 +235,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.keyboard.press("Escape");
     await page.locator("#modal[open]").waitFor({ state: "hidden" });
     for (const action of ["friends", "achievements", "activity", "join-server"]) {
-      await page.locator(`.rail [data-action='${action}']`).click();
+      await page.locator(`.rail > [data-action='${action}']`).click();
       await page.locator("#modal[open]").waitFor();
       await page.keyboard.press("Escape");
       await page.locator("#modal[open]").waitFor({ state: "hidden" });

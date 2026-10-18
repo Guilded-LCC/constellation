@@ -149,3 +149,26 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .activity-empty>strong{font-size:16px}
 .activity-empty p{margin:7px 0 0;font-size:13px}
 .message.mention-highlight{background:#4a4d57;box-shadow:0 0 0 2px #f5c400;transition:background .25s,box-shadow .25s}
+.legacy-preference{display:flex;align-items:center;gap:10px;margin:18px 0;padding:12px;border:1px solid #484b54;border-radius:5px;background:#2b2e35}
+.legacy-preference input{flex:none;width:34px;height:18px;margin:0;accent-color:#65c66f}
+.legacy-preference span{display:grid;gap:3px}
+.legacy-preference strong{color:#e4e5e8;font-size:14px}
+.legacy-preference small{color:#a6a8b0;font-size:12px}
+.legacy-profilebar{display:none}
+.layout.legacy-nav{grid-template-rows:minmax(0,1fr) 50px}
+.layout.legacy-nav .rail{grid-column:1/-1;grid-row:2;display:flex;flex-direction:row;align-items:center;gap:8px;width:100%;height:50px;min-height:50px;padding:4px 10px;overflow-x:auto;overflow-y:hidden;background:#181a1e;border-top:1px solid #34363d}
+.layout.legacy-nav .rail .orb{width:40px;height:40px;border-radius:8px}
+.layout.legacy-nav .rail .divider{width:1px;height:28px;margin:0 3px}
+.layout.legacy-nav .rail .rail-spacer{flex:1;min-width:12px;height:1px}
+.layout.legacy-nav .sidebar{grid-column:2;grid-row:1;min-height:0}
+.layout.legacy-nav .main{grid-column:3;grid-row:1;min-height:0}
+.layout.legacy-nav .members{grid-column:4;grid-row:1;min-height:0}
+.layout.legacy-nav .sidebar .profilebar{display:none}
+.layout.legacy-nav .legacy-profilebar{display:flex;align-items:center;gap:8px;flex:none;margin-left:auto;padding-left:12px;border-left:1px solid #3a3d45}
+.layout.legacy-nav .legacy-profile{display:flex;align-items:center;gap:8px;min-width:142px;padding:3px 6px;text-align:left}
+.layout.legacy-nav .legacy-profile-name{display:grid;min-width:0;gap:1px}
+.layout.legacy-nav .legacy-profile-name strong,.layout.legacy-nav .legacy-profile-name small{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout.legacy-nav .legacy-profile-name strong{font-size:13px}
+.layout.legacy-nav .legacy-profile-name small{font-size:11px;color:#a6a9b2}
+.layout.legacy-nav .legacy-profilebar .icon-button{flex:none;width:34px;height:34px}
+@media(max-width:700px){.layout.legacy-nav{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 50px}.layout.legacy-nav .rail{grid-column:1;grid-row:2}.layout.legacy-nav .main{grid-column:1;grid-row:1}.layout.legacy-nav .members{display:none}.layout.legacy-nav .legacy-profilebar{gap:4px;padding-left:6px}.layout.legacy-nav .legacy-profile{min-width:110px}.layout.legacy-nav .legacy-profile-name{display:none}.layout.legacy-nav .rail .rail-spacer{min-width:0}}
