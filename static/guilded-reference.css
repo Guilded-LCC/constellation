@@ -63,6 +63,8 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .msgtools{position:absolute;z-index:3;top:-17px;right:7px;display:flex;gap:2px;padding:4px;background:#292c33;border:1px solid #494c55;border-radius:7px;box-shadow:0 5px 15px #0005;opacity:0;pointer-events:none;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .message:hover .msgtools,.message:focus-within .msgtools{opacity:1;pointer-events:auto;transform:none}
 .msgtools button{width:30px;height:29px;display:grid;place-items:center;border-right:1px solid #454852;border-radius:0;color:#bec0c9}
+.msgtools button.quick-reaction{font-size:16px;line-height:1;border-right:0}
+.msgtools button.quick-reaction:hover{background:#ffffff18;border-radius:5px}
 .msgtools button:last-child{border-right:0}
 .msgtools button:hover{background:#40434d;color:white}
 .composer{padding:0 15px 12px}
