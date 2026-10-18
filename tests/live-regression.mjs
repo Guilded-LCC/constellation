@@ -84,6 +84,21 @@ if (process.env.RELATIONS_ONLY === "1") {
     const inviteTestServer = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Guilded QA Invite ${Date.now()}` } });
     inviteTestServerId = inviteTestServer.id;
     inviteTestCode = (await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: inviteTestServerId } })).code;
+    const anonymousPreviewResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/app_invite_preview`, {
+      method: "POST",
+      headers: { apikey: anonKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_code: inviteTestCode }),
+    });
+    assert(anonymousPreviewResponse.ok, "valid invite preview should work without a signed-in session");
+    const anonymousPreview = await anonymousPreviewResponse.json();
+    assert.equal(anonymousPreview.id, inviteTestServerId);
+    assert.deepEqual(Object.keys(anonymousPreview).sort(), ["avatar_url", "id", "inviter_avatar", "inviter_name", "member_count", "name"]);
+    const anonymousInvalidPreview = await fetch(`${supabaseUrl}/rest/v1/rpc/app_invite_preview`, {
+      method: "POST",
+      headers: { apikey: anonKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_code: "invalid-qa-invite" }),
+    });
+    assert(!anonymousInvalidPreview.ok, "invalid invite previews must remain rejected for anonymous callers");
     async function storageUpload(token, label) {
       const path = `channels/${channel.id}/relations-${label}-${crypto.randomUUID()}.txt`;
       const response = await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "POST", headers: { apikey: anonKey, Authorization: `Bearer ${token}`, "Content-Type": "text/plain", "x-upsert": "false" }, body: `storage permission ${label}` });
@@ -264,6 +279,41 @@ if (process.env.RELATIONS_ONLY === "1") {
       await page.keyboard.press("Escape");
       await page.locator("#modal[open]").waitFor({ state: "hidden" });
     }
+    const guestInvitePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    guestInvitePage.on("console", (message) => { if (message.type() === "error") browserErrors.push(message.text()); });
+    guestInvitePage.on("pageerror", (error) => browserErrors.push(error.message));
+    await guestInvitePage.goto(`${appUrl}/?invite=${encodeURIComponent(inviteTestCode)}`, { waitUntil: "domcontentloaded" });
+    await guestInvitePage.locator(".invite-landing").waitFor();
+    await guestInvitePage.locator("#invite-display-name").waitFor();
+    await guestInvitePage.getByText(`Accept ${ownerState.user.name}’s invite to join`).waitFor();
+    await guestInvitePage.screenshot({ path: "verification/live-invite-guest-1280.png" });
+    await guestInvitePage.setViewportSize({ width: 390, height: 844 });
+    await guestInvitePage.locator(".invite-preview-art").waitFor();
+    assert.equal(await guestInvitePage.evaluate(() => document.documentElement.scrollWidth), 390);
+    const guestInviteBounds = await guestInvitePage.locator(".invite-preview-shell").boundingBox();
+    assert(guestInviteBounds.x >= 0 && guestInviteBounds.x + guestInviteBounds.width <= 390, "guest invite card must fit the mobile viewport");
+    await guestInvitePage.screenshot({ path: "verification/live-invite-guest-390.png" });
+    await guestInvitePage.locator("#invite-display-name").fill("New Guest");
+    await guestInvitePage.locator("[data-action='invite-signup']").click();
+    await guestInvitePage.locator("#auth-form").getByText("Create account", { exact: false }).waitFor();
+    await guestInvitePage.locator("[data-action='invite-back']").click();
+    await guestInvitePage.locator("[data-action='invite-login']").click();
+    await guestInvitePage.getByText("Log in to continue").waitFor();
+    await guestInvitePage.evaluate(async (session) => {
+      const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+      const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      if (result.error) throw result.error;
+    }, member);
+    await guestInvitePage.reload({ waitUntil: "networkidle" });
+    await guestInvitePage.locator(".layout").waitFor();
+    await guestInvitePage.locator("#modal.invite-dialog").filter({ hasText: inviteTestServer.name }).waitFor();
+    await guestInvitePage.locator("#modal [data-action='accept-invite']").click();
+    await guestInvitePage.locator(`.rail .orb[data-id="${inviteTestServerId}"].active`).waitFor();
+    assert((await rpc(member.access_token, "app_state")).servers.some((entry) => entry.id === inviteTestServerId));
+    assert.equal(await guestInvitePage.evaluate(() => document.documentElement.scrollWidth), 390);
+    assert.equal(browserErrors.length, 0, browserErrors.join(" | "));
+    await guestInvitePage.close();
+    console.log("PASS live guest invite: anonymous scoped preview, invalid-code rejection, name/signup/login continuation, browser acceptance, persistence, desktop/mobile and empty console");
     const invitePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     invitePage.on("console", (message) => { if (message.type() === "error") browserErrors.push(message.text()); });
     invitePage.on("pageerror", (error) => browserErrors.push(error.message));

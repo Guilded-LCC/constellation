@@ -129,13 +129,33 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .invite-cancel{margin-top:8px;padding:8px 14px;color:#b8bac2;font-size:13px}
 .invite-cancel:hover{color:#fff}
 .invite-preview-art{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 48% 46%,#4a4d58 0,#2a2c33 72%);border-left:1px solid #454852}
-.invite-preview-art:before,.invite-preview-art:after{position:absolute;inset:-35px;content:"";opacity:.14;background-image:radial-gradient(circle at 24px 24px,#d4d6dc 1.3px,transparent 1.8px),radial-gradient(circle at 72px 72px,#d4d6dc 1.3px,transparent 1.8px);background-size:96px 96px;transform:rotate(-8deg)}
-.invite-preview-art:after{inset:0;opacity:.22;background:linear-gradient(135deg,transparent 48%,#555965 49%,transparent 50%) 0 0/42px 42px,linear-gradient(45deg,transparent 48%,#555965 49%,transparent 50%) 0 0/42px 42px}
+.invite-preview-art:before{position:absolute;inset:0;content:"";opacity:.36;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='%23b8bac5' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.4' opacity='.72'%3E%3Cpath d='M12 39V29a14 14 0 0 1 28 0v10m-28-8h6v14h-3a3 3 0 0 1-3-3zm28 0h-6v14h3a3 3 0 0 0 3-3z'/%3E%3Cpath d='M81 23c2-5 9-8 17-8s15 3 17 8l-4 17c-1 4-4 5-7 3l-6-5-6 5c-3 2-6 1-7-3zM89 29h10m-5-5v10m10-6h.1m4 4h.1'/%3E%3Ccircle cx='175' cy='29' r='15'/%3E%3Ccircle cx='175' cy='29' r='7'/%3E%3Cpath d='M28 104h26l-2 30H30zm0 6h26m-19 0v-8m12 8v-8m-12 16v12m12-12v12'/%3E%3Cpath d='M110 96v31m-10-6a10 10 0 1 1 20 0c0 4-4 6-10 6s-10-2-10-6zm10-25a5 5 0 1 0 5 5'/%3E%3Cpath d='M182 97l-11 17h22zm-6 17-4 13m16-13 5 13m-18 0h20'/%3E%3Cpath d='M9 184h26a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-12a4 4 0 0 1 4-4zm4-5c1-5 8-5 9 0m4 0c1-5 8-5 9 0m-25 11h8m-4-4v8m11-6h.1m4 4h.1'/%3E%3Cpath d='M90 176h16v24a8 8 0 0 1-16 0zm0 8h16m-8-8v-5m-4 17h.1m8 4h.1'/%3E%3Cpath d='M166 178h28v23h-28zm14 0v23m-14-16h28m-14-7c-9 0-13-10-7-10 4 0 7 6 7 10zm0 0c9 0 13-10 7-10-4 0-7 6-7 10z'/%3E%3C/g%3E%3C/svg%3E");background-size:220px 220px;background-position:center;background-repeat:repeat}
+.invite-preview-art:after{position:absolute;inset:0;content:"";opacity:.55;background:radial-gradient(ellipse at center,transparent 22%,#25272d 115%)}
 .invite-server-mark{position:relative;z-index:1;display:grid;place-items:center;width:132px;height:132px;border:1px solid #666a76;border-radius:7px;background:#f5c400;box-shadow:0 12px 32px #0006;color:#202124;font-size:56px;font-weight:800}
 .invite-server-mark.has-image{background:#343740}
 .invite-server-mark img{width:90px;height:90px;border-radius:7px;object-fit:cover}
 .invite-close{position:absolute;z-index:3;top:8px;right:8px;display:none}
 @media(max-width:560px){dialog.invite-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.invite-preview-shell{grid-template-columns:minmax(0,1fr);min-height:0}.invite-preview-copy{padding:46px 24px 20px}.invite-preview-art{min-height:120px;border-top:1px solid #454852;border-left:0}.invite-server-mark{width:88px;height:88px;font-size:38px}.invite-server-mark img{width:62px;height:62px}.invite-dialog .modalhead{padding:8px}.invite-dialog .modalhead .icon-button{background:#ffffff12}}
+.auth.invite-auth{background:radial-gradient(ellipse at 50% 10%,#30313a 0,#23252c 66%,#1c1e24 100%)}
+.invite-landing{width:min(810px,calc(100vw - 24px));margin:auto}
+.invite-landing .invite-preview-shell{width:100%;border:1px solid #4b4e56;border-radius:8px;background:#363841;box-shadow:0 26px 72px #0009;overflow:hidden}
+.invite-landing .invite-preview-copy{padding:34px 42px 28px}
+.invite-account-step .invite-count{margin:5px 0 23px;color:#aeb0b9;font-size:14px}
+.invite-name-label{width:min(100%,360px);margin:0 0 3px;color:#e7e8eb;font-size:14px;font-weight:500;text-align:left}
+.invite-account-step>input{width:min(100%,360px);height:42px;padding:7px 0;border:0;border-bottom:1px solid #aeb0b9;border-radius:0;background:transparent;font-size:16px;text-align:left}
+.invite-account-step>input:focus{border-bottom:2px solid var(--gold);outline:0}
+.invite-account-step>.error{width:min(100%,360px);min-height:0;margin:4px 0;color:#ff8c93;font-size:13px;text-align:left}
+.invite-account-step>.invite-continue{margin-top:13px}
+.invite-auth-heading{margin:2px 0 4px;font-size:20px}
+.invite-auth-copy{max-width:350px;margin:0 0 10px;color:#aeb0b9;font-size:13px}
+.invite-auth-form{width:min(100%,360px);text-align:left}
+.invite-auth-form label{margin:10px 0 4px;font-size:12px}
+.invite-auth-form input{width:100%;height:40px;padding:8px 10px}
+.invite-auth-form .invite-continue{width:100%;margin-top:15px}
+.invite-auth-form .switch{margin:10px 0 0;color:#b8bac2;font-size:13px;text-align:center}
+.invite-auth-form .switch button{padding:0;color:#61baff}
+.invite-landing .invite-cancel{margin-top:7px}
+@media(max-width:560px){.auth.invite-auth{padding:12px}.invite-landing{width:100%}.invite-landing .invite-preview-shell{grid-template-columns:minmax(0,1fr);min-height:0}.invite-landing .invite-preview-copy{padding:28px 22px 20px}.invite-landing .invite-preview-art{min-height:135px}.invite-auth-heading{margin-top:4px}}
 .profilebar .profile-identity{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:2px 4px;text-align:left}
 .profilebar .profile-identity:hover{background:#ffffff0a}
 .profilebar .profile-identity .who{flex:1;min-width:0}

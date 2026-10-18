@@ -112,6 +112,13 @@
     pollBusy = false,
     pendingRender = false,
     registration = false,
+    invitePreviewCode = "",
+    invitePreviewInfo = null,
+    invitePreviewError = "",
+    invitePreviewRequest = "",
+    inviteAuthMode = "preview",
+    inviteDisplayName = "",
+    invitePromptedCode = "",
     contextTarget = null,
     lastMessageKey = "";
   function safeMedia(value) {
@@ -303,6 +310,61 @@
   function field(id, label, value = "", type = "text") {
     return `<label for="${id}">${escapeHtml(label)}</label><input id="${id}" type="${type}" value="${escapeHtml(value)}">`;
   }
+  function inviteCodeFromURL() {
+    return new URLSearchParams(location.search).get("invite")?.trim() || "";
+  }
+  function clearInviteFromURL() {
+    const url = new URL(location.href);
+    url.searchParams.delete("invite");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+  }
+  function inviteArt(invite) {
+    const hasImage = !!safeMedia(invite.avatar_url),
+      mark = hasImage ? `<img src="${safeMedia(invite.avatar_url)}" alt="">` : escapeHtml((invite.name || "S")[0].toUpperCase());
+    return `<aside class="invite-preview-art"><div class="invite-server-mark ${hasImage ? "has-image" : ""}">${mark}</div></aside>`;
+  }
+  function renderInviteLanding(code) {
+    const invite = invitePreviewInfo,
+      inviterAvatar = safeMedia(invite.inviter_avatar)
+        ? `<img src="${safeMedia(invite.inviter_avatar)}" alt="">`
+        : escapeHtml((invite.inviter_name || "M")[0].toUpperCase());
+    if (inviteAuthMode !== "preview") {
+      const signingUp = registration,
+        usernameSuggestion = inviteDisplayName.toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 32);
+      $("#app").innerHTML = `<div class="auth invite-auth"><main class="invite-landing"><section class="invite-preview-shell"><section class="invite-preview-copy invite-account-step"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><h1 class="invite-auth-heading">${signingUp ? "Create your account" : "Log in to continue"}</h1><p class="invite-auth-copy">Use email to join this community. Your invite will be applied after sign-in.</p><form id="auth-form" class="invite-auth-form">${field("email", "Email address", "", "email")}${signingUp ? `${field("username", "Username", usernameSuggestion)}${field("displayname", "Display name", inviteDisplayName)}` : ""}${field("password", signingUp ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary invite-continue" type="submit">${signingUp ? "Create account" : "Log in"}</button><div class="error" id="autherror">${escapeHtml(invitePreviewError)}</div><div class="switch">${signingUp ? "Already have an account?" : "New to Constellation?"} <button type="button" data-action="auth-switch">${signingUp ? "Log in" : "Create an account"}</button></div></form><button class="invite-cancel" data-action="invite-back">Back to invite</button></section>${inviteArt(invite)}</section></main></div>`;
+      $("#auth-form").autocomplete = "off";
+      $("#email").autocomplete = "off";
+      $("#email").required = true;
+      $("#password").autocomplete = "off";
+      $("#password").required = true;
+      if (signingUp) {
+        $("#password").minLength = 10;
+        $("#username").required = true;
+        $("#username").pattern = "[a-zA-Z0-9_.-]{3,32}";
+      }
+      return;
+    }
+    $("#app").innerHTML = `<div class="auth invite-auth"><main class="invite-landing"><section class="invite-preview-shell"><section class="invite-preview-copy invite-account-step"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">Accept ${escapeHtml(invite.inviter_name || "a member")}’s invite to join</p><h2>${escapeHtml(invite.name)}</h2><div class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</div><label class="invite-name-label" for="invite-display-name">What do you want to be called?</label><input id="invite-display-name" maxlength="32" autocomplete="nickname" value="${escapeHtml(inviteDisplayName)}" placeholder="Your display name"><div class="error" id="invite-error">${escapeHtml(invitePreviewError)}</div><button class="primary invite-continue" data-action="invite-signup">Continue</button><button class="invite-cancel" data-action="invite-login">Log in</button></section>${inviteArt(invite)}</section></main></div>`;
+    if (!$("#invite-display-name")?.value && inviteDisplayName) $("#invite-display-name").value = inviteDisplayName;
+  }
+  async function openInvitePreview(code) {
+    if (!code) return;
+    invitePromptedCode = code;
+    const invite = await rpc("app_invite_preview", { p_code: code });
+    const hasServerImage = !!safeMedia(invite.avatar_url),
+      serverMark = hasServerImage
+        ? `<img src="${safeMedia(invite.avatar_url)}" alt="">`
+        : escapeHtml((invite.name || "S")[0].toUpperCase()),
+      inviterAvatar = safeMedia(invite.inviter_avatar)
+        ? `<img src="${safeMedia(invite.inviter_avatar)}" alt="">`
+        : escapeHtml((invite.inviter_name || "M")[0].toUpperCase());
+    show(
+      "",
+      `<div class="invite-preview-shell"><button class="invite-close icon-button" data-action="close" aria-label="Close">${icon("close")}</button><section class="invite-preview-copy"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><div class="invite-account"><span>${avatar(state.user)}</span><span><small>Joining as</small><strong>${escapeHtml(state.user.name || state.user.username || "Member")}</strong></span></div><button class="primary invite-continue" data-action="accept-invite">Continue</button><button class="invite-cancel" data-action="close">Maybe later</button></section><aside class="invite-preview-art"><div class="invite-server-mark ${hasServerImage ? "has-image" : ""}">${serverMark}</div></aside></div>`,
+    );
+    modal.classList.add("invite-dialog");
+    modal.dataset.inviteCode = code;
+  }
   function value(id) {
     return $("#" + id)?.value ?? "";
   }
@@ -332,6 +394,37 @@
     if (!supabase) {
       $("#app").innerHTML =
         '<div class="auth"><div class="auth-shell"><div class="authcard"><h1>Connection unavailable</h1><p>Check the site configuration and reload.</p></div></div></div>';
+      return;
+    }
+    const inviteCode = inviteCodeFromURL();
+    if (inviteCode) {
+      if (invitePreviewCode === inviteCode && invitePreviewInfo) {
+        renderInviteLanding(inviteCode);
+        return;
+      }
+      if (invitePreviewCode === inviteCode && invitePreviewError) {
+        $("#app").innerHTML = `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Constellation</div><section class="authcard"><h1>Invite unavailable</h1><p>${escapeHtml(invitePreviewError)}</p><a href="/">Return home</a></section></div></div>`;
+        return;
+      }
+      $("#app").innerHTML = '<div class="auth"><div class="auth-shell"><section class="authcard"><h1>Loading invite</h1><p>Please wait while we check this invitation.</p></section></div></div>';
+      if (invitePreviewRequest !== inviteCode) {
+        invitePreviewRequest = inviteCode;
+        rpc("app_invite_preview", { p_code: inviteCode })
+          .then((invite) => {
+            invitePreviewCode = inviteCode;
+            invitePreviewInfo = invite;
+            invitePreviewError = "";
+            if (!state) renderAuth();
+          })
+          .catch((error) => {
+            invitePreviewCode = inviteCode;
+            invitePreviewInfo = null;
+            invitePreviewError = /invalid|expired|unavailable/i.test(error?.message || "")
+              ? "This invite is invalid or has expired. Ask a server member for a new link."
+              : "We couldn’t load this invite. Check your connection and try again.";
+            if (!state) renderAuth();
+          });
+      }
       return;
     }
     $("#app").innerHTML =
@@ -408,6 +501,17 @@
     }
     if (page === "overview" && current()) loadOverviewInfo(current());
     if (renderAll) render();
+    const inviteCode = inviteCodeFromURL();
+    if (state && inviteCode && invitePromptedCode !== inviteCode) {
+      try {
+        await openInvitePreview(inviteCode);
+      } catch (error) {
+        invitePromptedCode = "";
+        toast(/invalid|expired|unavailable/i.test(error?.message || "")
+          ? "This invite is invalid or has expired."
+          : "We couldn’t load this invite. Please try again.");
+      }
+    }
     if (page === "chat") await loadMessages();
   }
   function rail() {
@@ -957,8 +1061,43 @@
         closeModal();
         return;
       }
+      if (action === "invite-signup") {
+        inviteDisplayName = value("invite-display-name").trim();
+        if (!inviteDisplayName) {
+          $("#invite-error").textContent = "Choose a display name to continue.";
+          $("#invite-display-name").focus();
+          return;
+        }
+        invitePreviewError = "";
+        inviteAuthMode = "signup";
+        registration = true;
+        renderAuth();
+        return;
+      }
+      if (action === "invite-login") {
+        inviteAuthMode = "login";
+        registration = false;
+        renderAuth();
+        return;
+      }
+      if (action === "invite-back") {
+        inviteAuthMode = "preview";
+        registration = false;
+        renderAuth();
+        return;
+      }
+      if (action === "invite-dismiss") {
+        clearInviteFromURL();
+        invitePreviewCode = "";
+        invitePreviewInfo = null;
+        invitePreviewError = "";
+        inviteAuthMode = "preview";
+        renderAuth();
+        return;
+      }
       if (action === "auth-switch") {
         registration = !registration;
+        if (inviteCodeFromURL()) inviteAuthMode = registration ? "signup" : "login";
         renderAuth();
         return;
       }
@@ -1490,29 +1629,18 @@
       if (action === "preview-invite") {
         const code = value("invite-code").trim();
         if (!code) throw new Error("Enter an invitation code to continue");
-        const invite = await rpc("app_invite_preview", { p_code: code });
-        modal.dataset.inviteCode = code;
-        const hasServerImage = !!safeMedia(invite.avatar_url);
-        const serverMark = hasServerImage
-          ? `<img src="${safeMedia(invite.avatar_url)}" alt="">`
-          : escapeHtml((invite.name || "S")[0].toUpperCase());
-        const inviterAvatar = safeMedia(invite.inviter_avatar)
-          ? `<img src="${safeMedia(invite.inviter_avatar)}" alt="">`
-          : escapeHtml((invite.inviter_name || "M")[0].toUpperCase());
-        show(
-          "",
-          `<div class="invite-preview-shell"><button class="invite-close icon-button" data-action="close" aria-label="Close">${icon("close")}</button><section class="invite-preview-copy"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><div class="invite-account"><span>${avatar(state.user)}</span><span><small>Joining as</small><strong>${escapeHtml(state.user.name || state.user.username || "Member")}</strong></span></div><button class="primary invite-continue" data-action="accept-invite">Continue</button><button class="invite-cancel" data-action="close">Maybe later</button></section><aside class="invite-preview-art"><div class="invite-server-mark ${hasServerImage ? "has-image" : ""}">${serverMark}</div></aside></div>`,
-        );
-        modal.classList.add("invite-dialog");
-        modal.dataset.inviteCode = code;
+        await openInvitePreview(code);
         return;
       }
       if (action === "accept-invite") {
-        const result = await api("server/join", { code: modal.dataset.inviteCode || "" });
+        const code = modal.dataset.inviteCode || "";
+        const result = await api("server/join", { code });
         sid = result.id;
         cid = null;
         dm = null;
         page = "overview";
+        invitePromptedCode = code;
+        clearInviteFromURL();
         await refresh();
         closeModal();
         return;
@@ -1893,7 +2021,7 @@
             email,
             password,
             options: {
-              emailRedirectTo: location.origin,
+              emailRedirectTo: location.origin + location.pathname + location.search + location.hash,
               data: {
                 username: value("username"),
                 name: value("displayname") || value("username"),
@@ -1902,8 +2030,11 @@
           });
           if (response.error) throw response.error;
           if (!response.data.session) {
-            toast("Check your email, then sign in.");
+            invitePreviewError = inviteCodeFromURL()
+              ? "Check your email, then return to this invite to sign in."
+              : "Check your email, then sign in.";
             registration = false;
+            if (inviteCodeFromURL()) inviteAuthMode = "login";
             renderAuth();
             return;
           }
@@ -1914,6 +2045,7 @@
           });
           if (response.error) throw response.error;
         }
+        invitePreviewError = "";
         await refresh();
       } catch (error) {
         $("#autherror").textContent = errText(error);
