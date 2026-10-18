@@ -57,6 +57,7 @@
     compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM15.5 8.5l-2 5-5 2 2-5 5-2Z",
     sparkles: "m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3ZM19 14l1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z",
     star: "m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z",
+    help: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4m0 3h.01",
   };
   const icon = (name, size = "") =>
     `<svg class="i ${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.hash}"/></svg>`;
@@ -475,7 +476,7 @@
     const customStatus = statusText || statusEmoji
       ? `<small>${statusEmoji ? `<span class="custom-status-emoji">${escapeHtml(statusEmoji)}</span>` : ""}${statusText ? escapeHtml(statusText) : ""}</small>`
       : "";
-    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong>${customStatus}</span><button class="icon-button mention-trigger" data-action="activity" title="Activity log" aria-label="Activity log">@</button><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
+    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><button class="profile-identity" data-action="profile" title="View your profile"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong>${customStatus}</span></button><button class="icon-button mention-trigger" data-action="activity" title="Activity log" aria-label="Activity log">@</button><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
   }
   function memberList() {
     const server = current();
@@ -1323,10 +1324,31 @@
       }
       if (action === "user-menu") {
         const entries = [];
+        entries.push(
+          { label: "Referral program", action: "guilded-resource", icon: "invite", id: "referral" },
+          { label: "Support", action: "guilded-resource", icon: "help", id: "support" },
+          { label: "Feedback", action: "guilded-resource", icon: "megaphone", id: "feedback" },
+          { label: "Blog", action: "guilded-resource", icon: "list", id: "blog" },
+          { label: "Become a partner", action: "guilded-resource", icon: "users", id: "partner" },
+          { label: "Follow us on social media", action: "guilded-resource", icon: "sparkles", id: "social" },
+          { label: "We're hiring!", action: "guilded-resource", icon: "arrow", id: "jobs" },
+        );
         if (state.user?.is_platform_staff)
           entries.push({ label: "Staff panel", action: "staff-panel", icon: "shield" });
         entries.push({ label: "Log out", action: "logout", icon: "logout" });
         menu(entries, event.clientX, event.clientY);
+        return;
+      }
+      if (action === "guilded-resource") {
+        if (id === "support" || id === "feedback") {
+          const destination = id === "support"
+            ? "https://support.guilded.gg/hc/en-us"
+            : "https://support.guilded.gg/hc/en-us/requests/new";
+          window.open(destination, "_blank", "noopener,noreferrer");
+        } else {
+          const label = ({ referral: "Referral program", blog: "Blog", partner: "Become a partner", social: "Social media", jobs: "Careers" })[id] || "Guilded resource";
+          show(label, '<p class="muted">This destination belonged to Guilded’s external service and is not available inside the localhost app.</p>');
+        }
         return;
       }
       if (action === "channel-menu") {

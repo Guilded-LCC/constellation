@@ -176,7 +176,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     }, owner);
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
-    await page.locator(".profilebar [data-action='profile']").click();
+    await page.locator(".profilebar .profile-identity").click();
     await page.locator("#profile-legacy-nav").check();
     await page.locator("#modal [data-action='save-profile']").click();
     await page.locator(".layout.legacy-nav").waitFor();
@@ -198,7 +198,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.locator("#modal [data-action='save-profile']").click();
     await page.locator(".layout:not(.legacy-nav)").waitFor();
     console.log("PASS live legacy navigation: Supabase preference survives refresh, horizontal bottom rail renders at 1280/390 without overflow");
-    await page.locator(".profilebar [data-action='profile']").click();
+    await page.locator(".profilebar .profile-identity").click();
     await page.locator("#profile-custom-status").waitFor();
     assert.equal(await page.locator("#profile-custom-status").inputValue(), "Temporary QA status");
     await page.locator("#profile-custom-status").fill("Reviewing Guilded UI");
@@ -212,6 +212,22 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.screenshot({ path: "verification/live-custom-status-390.png" });
     await page.setViewportSize({ width: 1280, height: 800 });
     console.log("PASS live custom status: self-edit persists, appears in sidebar/member list, another member cannot change it");
+    await page.locator("#toast").waitFor({ state: "hidden" });
+    await page.locator(".profilebar [data-action='user-menu']").click();
+    await page.locator(".context-menu").filter({ hasText: "Referral program" }).waitFor();
+    for (const label of ["Support", "Feedback", "Blog", "Become a partner", "Follow us on social media", "We're hiring!", "Log out"]) {
+      await page.locator(".context-menu").getByText(label, { exact: true }).waitFor();
+    }
+    await page.screenshot({ path: "verification/live-user-menu-1280.png" });
+    await page.evaluate(() => document.querySelector(".context-menu")?.remove());
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => document.querySelector(".layout")?.classList.add("shownav"));
+    await page.locator(".profilebar [data-action='user-menu']").click();
+    await page.locator(".context-menu").waitFor();
+    await page.screenshot({ path: "verification/live-user-menu-390.png" });
+    await page.evaluate(() => { document.querySelector(".context-menu")?.remove(); document.querySelector(".layout")?.classList.remove("shownav"); });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    console.log("PASS live profile action menu: reference links and logout entries visible at desktop/mobile; destinations are explicitly handled");
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
     await page.locator(".serverhead-title").click();
     await page.locator(`.context-menu [data-action="favorite-server"][data-id="${serverId}"]`).click();

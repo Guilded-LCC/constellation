@@ -136,6 +136,9 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .invite-server-mark img{width:90px;height:90px;border-radius:7px;object-fit:cover}
 .invite-close{position:absolute;z-index:3;top:8px;right:8px;display:none}
 @media(max-width:560px){dialog.invite-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.invite-preview-shell{grid-template-columns:minmax(0,1fr);min-height:0}.invite-preview-copy{padding:46px 24px 20px}.invite-preview-art{min-height:120px;border-top:1px solid #454852;border-left:0}.invite-server-mark{width:88px;height:88px;font-size:38px}.invite-server-mark img{width:62px;height:62px}.invite-dialog .modalhead{padding:8px}.invite-dialog .modalhead .icon-button{background:#ffffff12}}
+.profilebar .profile-identity{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:2px 4px;text-align:left}
+.profilebar .profile-identity:hover{background:#ffffff0a}
+.profilebar .profile-identity .who{flex:1;min-width:0}
 .mention-trigger{flex:none;width:28px;height:28px;color:#aeb1ba;font-size:19px;font-weight:600;line-height:1}
 .mention-trigger:hover{color:#f4f4f5;background:#ffffff12}
 .mention-feed{display:grid;gap:6px}
