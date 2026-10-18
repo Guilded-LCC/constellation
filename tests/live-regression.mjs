@@ -152,6 +152,14 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.locator(".serverhead-title").click();
     await page.locator(`.context-menu [data-action="favorite-server"][data-id="${serverId}"]`).click();
     await page.locator(`.rail .orb[data-id="${serverId}"].favorite`).waitFor();
+    await page.locator(".rail [data-action='server-list']").click();
+    await page.locator(".server-list-panel").waitFor();
+    await page.locator(".server-list-panel .server-list-group h3", { hasText: "Favorites" }).waitFor();
+    await page.screenshot({ path: "verification/live-server-list-1280.png" });
+    await page.locator("#server-list-search").fill("Relations QA");
+    await page.locator(`.server-list-panel .server-list-select[data-id="${serverId}"]`).waitFor();
+    await page.locator(`.server-list-panel .server-list-select[data-id="${serverId}"]`).click();
+    await page.locator(".server-list-panel").waitFor({ state: "hidden" });
     await page.locator(".serverhead-actions [data-action='invite']").waitFor();
     await page.locator(".serverhead-actions [data-action='settings']").waitFor();
     await page.locator(".serverhead-actions [data-action='invite']").click();
@@ -209,6 +217,13 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.locator(".thread-panel").filter({ hasText: "member thread reply" }).waitFor();
     await page.screenshot({ path: "verification/live-message-relations-1280.png" });
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator(".rail [data-action='server-list']").click();
+    await page.locator(".server-list-panel").waitFor();
+    const serverListWidths = await page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
+    assert.equal(serverListWidths.content, serverListWidths.viewport, "mobile server list should not overflow horizontally");
+    await page.screenshot({ path: "verification/live-server-list-390.png" });
+    await page.locator(".rail [data-action='server-list']").click();
+    await page.locator(".server-list-panel").waitFor({ state: "hidden" });
     await page.locator(`.message[data-message="${root.id}"] .message-thread-link`).click();
     await page.locator("#modal[open]").filter({ hasText: "member thread reply" }).waitFor();
     const widths = await page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));

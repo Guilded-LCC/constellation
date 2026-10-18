@@ -82,6 +82,8 @@
     cid = null,
     dm = null,
     page = "home",
+    serverListOpen = false,
+    serverSearch = "",
     messages = [],
     messageRelations = { replies: [], threads: [] },
     replyTarget = null,
@@ -407,7 +409,22 @@
     if (page === "chat") await loadMessages();
   }
   function rail() {
-    return `<nav class="rail" aria-label="Navigation"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Direct messages" aria-label="Direct messages">${icon("chat")}</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""} ${favoriteServers.has(server.id) ? "favorite" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}" aria-label="${escapeHtml(server.name)}${favoriteServers.has(server.id) ? ", favorite" : ""}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server" aria-label="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="achievements" title="Badges and achievements" aria-label="Badges and achievements">${icon("trophy")}</button><button class="orb" data-action="friends" title="Friends" aria-label="Friends">${icon("users")}</button><button class="orb" data-action="join-server" title="Discover or join a server" aria-label="Discover or join a server">${icon("compass")}</button><div class="divider"></div><button class="orb" data-action="activity" title="Activity" aria-label="Activity">${icon("sparkles")}</button></nav>`;
+    return `<nav class="rail" aria-label="Navigation"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Direct messages" aria-label="Direct messages">${icon("chat")}</button><button class="orb ${serverListOpen ? "active" : ""}" data-action="server-list" title="Server list" aria-label="Server list">${icon("users")}</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""} ${favoriteServers.has(server.id) ? "favorite" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}" aria-label="${escapeHtml(server.name)}${favoriteServers.has(server.id) ? ", favorite" : ""}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server" aria-label="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="achievements" title="Badges and achievements" aria-label="Badges and achievements">${icon("trophy")}</button><button class="orb" data-action="friends" title="Friends" aria-label="Friends">${icon("users")}</button><button class="orb" data-action="join-server" title="Discover or join a server" aria-label="Discover or join a server">${icon("compass")}</button><div class="divider"></div><button class="orb" data-action="activity" title="Activity" aria-label="Activity">${icon("sparkles")}</button></nav>`;
+  }
+  function serverListRows() {
+    const query = serverSearch.trim().toLocaleLowerCase();
+    const list = [...(state.servers || [])]
+      .filter((server) => (server.name || "").toLocaleLowerCase().includes(query))
+      .sort((a, b) => Number(favoriteServers.has(b.id)) - Number(favoriteServers.has(a.id)));
+    const favorites = list.filter((server) => favoriteServers.has(server.id));
+    const others = list.filter((server) => !favoriteServers.has(server.id));
+    const group = (title, servers) => servers.length
+      ? `<section class="server-list-group"><h3>${escapeHtml(title)}</h3>${servers.map((server) => `<div class="server-list-row"><button class="server-list-select" data-action="server" data-id="${server.id}"><span class="server-list-avatar">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</span><span><strong>${escapeHtml(server.name)}</strong><small>${(server.members || []).length} ${(server.members || []).length === 1 ? "member" : "members"}</small></span></button><button class="server-list-favorite ${favoriteServers.has(server.id) ? "selected" : ""}" data-action="favorite-server" data-id="${server.id}" aria-pressed="${favoriteServers.has(server.id)}" title="${favoriteServers.has(server.id) ? "Remove from favorites" : "Add to favorites"}">${icon("star", "sm")}</button></div>`).join("")}</section>`
+      : "";
+    return `${group("Favorites", favorites)}${group("All servers", others)}${list.length ? "" : '<p class="server-list-empty">No servers match your search.</p>'}`;
+  }
+  function serverListPanel() {
+    return `<aside class="server-list-panel" aria-label="Server list"><header><strong>Communities</strong><button class="icon-button" data-action="close-server-list" aria-label="Close server list">${icon("close")}</button></header><input id="server-list-search" type="search" placeholder="Search servers" value="${escapeHtml(serverSearch)}" aria-label="Search servers"><div class="server-list-groups">${serverListRows()}</div><footer><button data-action="create-server">${icon("plus", "sm")} Create a server</button><button data-action="join-server">${icon("invite", "sm")} Join a server</button></footer></aside>`;
   }
   function serverHeader(server) {
     if (!server)
@@ -600,7 +617,7 @@
         selectedChannel?.type,
       );
     $("#app").innerHTML =
-      `<div class="layout ${membersVisible ? "" : "members-hidden"}">${rail()}${sidebar()}<main class="main">${server ? (page === "overview" ? overview() : page === "audit" && (can("manage_server") || can("view_audit")) ? auditView() : isFeature ? featureView() : chatView()) : dm ? chatView() : `<section class="empty-home"><div class="home-mark">C</div><h1>Your conversations start here</h1><p>Open a server, create your own, or send a direct message.</p><div class="actions"><button class="primary" data-action="create-server">Create a server</button><button class="secondary" data-action="join-server">Join a server</button></div><button data-action="new-dm">Start a direct message</button></section>`}</main>${memberList()}</div>`;
+      `<div class="layout ${membersVisible ? "" : "members-hidden"} ${serverListOpen ? "server-list-open" : ""}">${rail()}${serverListOpen ? serverListPanel() : ""}${sidebar()}<main class="main">${server ? (page === "overview" ? overview() : page === "audit" && (can("manage_server") || can("view_audit")) ? auditView() : isFeature ? featureView() : chatView()) : dm ? chatView() : `<section class="empty-home"><div class="home-mark">C</div><h1>Your conversations start here</h1><p>Open a server, create your own, or send a direct message.</p><div class="actions"><button class="primary" data-action="create-server">Create a server</button><button class="secondary" data-action="join-server">Join a server</button></div><button data-action="new-dm">Start a direct message</button></section>`}</main>${memberList()}</div>`;
     if (page === "chat") {
       lastMessageKey = "";
       renderMessages();
@@ -929,6 +946,7 @@
         return;
       }
       if (action === "home") {
+        serverListOpen = false;
         sid = cid = null;
         dm = null;
         page = "home";
@@ -957,11 +975,22 @@
         return;
       }
       if (action === "server") {
+        serverListOpen = false;
         sid = id;
         cid = null;
         dm = null;
         page = "overview";
         $(".layout")?.classList.remove("shownav");
+        render();
+        return;
+      }
+      if (action === "server-list") {
+        serverListOpen = !serverListOpen;
+        render();
+        return;
+      }
+      if (action === "close-server-list") {
+        serverListOpen = false;
         render();
         return;
       }
@@ -1733,6 +1762,11 @@
     if (event.target.id === "top-search") {
       search = event.target.value;
       renderMessages();
+    }
+    if (event.target.id === "server-list-search") {
+      serverSearch = event.target.value;
+      const rows = $(".server-list-groups");
+      if (rows) rows.innerHTML = serverListRows();
     }
   });
   document.addEventListener("dragover", (event) => {
