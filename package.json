@@ -3,7 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "check": "node --check static/app.js && node --check static/config.js"
+    "check": "node --check static/guilded.js && node --check static/settings-ui.js && node --check static/config.js && node --check scripts/serve.mjs",
+    "verify:settings": "node scripts/verify-phase-a.mjs",
+    "verify:comparisons": "node scripts/compare-phase-a.mjs",
+    "test:e2e": "node tests/e2e.mjs",
+    "test:security": "node tests/security.mjs"
+  },
+  "devDependencies": {
+    "pg": "^8.23.1",
+    "playwright": "^1.64.1",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5"
   }
 }
