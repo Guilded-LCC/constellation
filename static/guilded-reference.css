@@ -102,10 +102,19 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .overview-card{min-height:145px;padding:17px;border-radius:7px;background:#3a3d46}
 .overview-card h3{font-size:16px}
 .overview-card p,.overview-card small{font-size:13px}
+.upcoming-events-shell{position:relative;min-width:0}
+.overview-cards.upcoming-events{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 2px 5px}
+.overview-cards.upcoming-events::-webkit-scrollbar{display:none}
+.upcoming-events>.overview-card{flex:0 0 236px;scroll-snap-align:start}
+.upcoming-events>.overview-card .event-rsvp{margin-top:auto}
+.upcoming-events-next{position:absolute;z-index:1;right:-12px;top:50%;display:grid;place-items:center;width:34px;height:34px;border:1px solid #555963;border-radius:50%;background:#292b32;color:#f2f3f5;box-shadow:0 3px 10px #0006;transform:translateY(-50%)}
+.upcoming-events-next:hover{background:#f5c400;color:#202124}
+.upcoming-events-next svg{transform:rotate(-90deg)}
 .auth{background:radial-gradient(ellipse at 50% 8%,#34304f 0,#252638 38%,#1d2028 78%)}
 .auth-brand .mark,.empty-home .home-mark{border-radius:10px}
 @media(max-width:1100px){:root{--members-width:270px}.members{display:none}}
 @media(max-width:700px){.nav-item,.channel{font-size:16px}.topbar{height:50px}.message{padding-left:7px;padding-right:7px}.message .avatar{width:36px;height:36px}.message .avatar-spacer{width:36px}.overview-body{padding-left:18px;padding-right:18px}}
+@media(max-width:700px){.upcoming-events>.overview-card{flex-basis:calc(100vw - var(--rail-width) - 36px)}.upcoming-events-next{right:-8px}}
 html{font-size:16px}body{font-size:16px}
 .rail .orb[data-action="server"]{border-radius:11px}.rail .orb[data-action="server"].active{background:transparent;color:var(--text);border:0;outline:0;border-radius:11px;box-shadow:0 0 0 2px rgba(255,255,255,.8)}.rail .orb[data-action="server"].active:before{display:none}.rail .orb[data-action="server"] img{border-radius:10px}
 .profilebar .who{min-width:0}.profilebar small{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.custom-status-emoji{margin-right:5px}

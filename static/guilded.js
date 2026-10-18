@@ -634,10 +634,11 @@
     const eventCards = events.length
       ? events.slice(0, 5).map((event) => {
           const response = (event.rsvps || []).find((rsvp) => rsvp.user_id === state.user.id)?.status;
-          return `<article class="overview-card"><h3>${escapeHtml(event.title || "Event")}</h3><p>${new Date(event.starts_at).toLocaleString()}</p><small>${escapeHtml(event.description || "")}</small><div class="event-rsvp" role="group" aria-label="RSVP to ${escapeHtml(event.title || "event")}"><button class="${response === "going" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="going" title="Going" aria-label="Going">✓</button><button class="${response === "maybe" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="maybe" title="Maybe" aria-label="Maybe">?</button><button class="${response === "declined" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="declined" title="Can't go" aria-label="Can't go">×</button></div></article>`;
+          const going = (event.rsvps || []).filter((rsvp) => rsvp.status === "going").length;
+          return `<article class="overview-card"><h3>${escapeHtml(event.title || "Event")}</h3><p>${going} ${going === 1 ? "person" : "people"} going · ${new Date(event.starts_at).toLocaleString()}</p><small>${escapeHtml(event.description || "")}</small><div class="event-rsvp" role="group" aria-label="RSVP to ${escapeHtml(event.title || "event")}"><button class="${response === "going" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="going" title="Going" aria-label="Going">✓</button><button class="${response === "maybe" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="maybe" title="Maybe" aria-label="Maybe">?</button><button class="${response === "declined" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="declined" title="Can't go" aria-label="Can't go">×</button></div></article>`;
         }).join("")
       : '<p class="muted">No upcoming events</p>';
-    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}>${bannerArt}</div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latestCards}</div><div class="announcements-heading upcoming-heading"><h2>Upcoming events</h2></div><div class="overview-cards upcoming-events">${eventCards}</div></section></div>`;
+    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}>${bannerArt}</div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latestCards}</div><div class="announcements-heading upcoming-heading"><h2>Upcoming events</h2></div><div class="upcoming-events-shell"><div class="overview-cards upcoming-events" id="overview-events">${eventCards}</div>${events.length > 2 ? `<button class="upcoming-events-next" data-action="overview-events-next" aria-label="Show more upcoming events">${icon("chevron", "sm")}</button>` : ""}</div></section></div>`;
   }
   function chatView() {
     const s = current(),
@@ -1433,6 +1434,11 @@
         });
         overviewInfo.serverId = null;
         await loadOverviewInfo(current());
+        return;
+      }
+      if (action === "overview-events-next") {
+        const track = $("#overview-events");
+        track?.scrollBy({ left: track.clientWidth * 0.8, behavior: "smooth" });
         return;
       }
       if (action === "event-rsvp") {
