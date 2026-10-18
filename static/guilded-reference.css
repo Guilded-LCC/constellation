@@ -65,6 +65,7 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .msgtools button{width:30px;height:29px;display:grid;place-items:center;border-right:1px solid #454852;border-radius:0;color:#bec0c9}
 .msgtools button.quick-reaction{font-size:16px;line-height:1;border-right:0}
 .msgtools button.quick-reaction:hover{background:#ffffff18;border-radius:5px}
+.msgtools button[data-action="message-menu"]:hover,.msgtools button[data-action="message-menu"]:focus-visible{outline:2px solid #f5c400;outline-offset:1px;border-radius:5px;color:#fff}
 .msgtools button:last-child{border-right:0}
 .msgtools button:hover{background:#40434d;color:white}
 .composer{padding:0 15px 12px}
