@@ -214,6 +214,17 @@
         ? `<span class="role-emote" title="${escapeHtml(role.name)}">${escapeHtml(role.emoji)}</span>`
         : "";
   }
+  function memberStatus(member) {
+    const emoji = member?.custom_status_emoji || member?.status_emoji || "";
+    const text = member?.custom_status || "";
+    if (!emoji && !text) return "";
+    return `<small>${emoji ? `<span class="custom-status-emoji">${escapeHtml(emoji)}</span>` : ""}${text ? escapeHtml(text) : ""}</small>`;
+  }
+  function botBadge(member) {
+    return member?.is_bot === true || member?.isBot === true
+      ? '<span class="bot-badge">BOT</span>'
+      : "";
+  }
   function roleColor(role) {
     return /^#[0-9a-fA-F]{6}$/.test(role?.color || "") ? role.color : "#c8cbd2";
   }
@@ -423,7 +434,9 @@
     const groups = new Map();
     for (const member of members) {
       const role = topRole(member),
-        name = member.status === "invisible" ? "Offline" : role?.id || "Member";
+        name = ["invisible", "offline"].includes(member.status)
+          ? "Offline"
+          : role?.id || "Member";
       if (!groups.has(name)) groups.set(name, []);
       groups.get(name).push(member);
     }
@@ -437,7 +450,8 @@
           `<section class="member-group"><h2>${people.length} ${escapeHtml(roles.find((r) => r.id === id)?.name || id)}</h2>${people
             .map((member) => {
               const role = topRole(member);
-              return `<button class="member ${member.status === "invisible" ? "offline" : ""}" data-action="member" data-id="${member.id}"><span class="avatar-wrap">${avatar(member)}<i class="status-dot ${escapeHtml(member.status || "online")}"></i></span><span class="who"><strong><span style="${roleTextStyle(role)}">${escapeHtml(member.name || "Member")}</span> ${roleIcon(role)}</strong><small>${escapeHtml(member.custom_status || (member.status === "online" ? "" : member.status || ""))}</small></span></button>`;
+              const offline = ["invisible", "offline"].includes(member.status);
+              return `<button class="member ${offline ? "offline" : ""}" data-action="member" data-id="${member.id}"><span class="avatar-wrap">${avatar(member)}<i class="status-dot ${escapeHtml(member.status || "online")}"></i></span><span class="who"><strong><span style="${roleTextStyle(role)}">${escapeHtml(member.name || "Member")}</span>${roleIcon(role)}${botBadge(member)}</strong>${memberStatus(member)}</span></button>`;
             })
             .join("")}</section>`,
       ).join("")}<button class="member-invite" data-action="invite">${icon("invite")}<span>Invite</span></button></aside>`;
@@ -668,7 +682,8 @@
               : `<a class="file-chip" href="${attachmentURLs[a.id] || "#"}" target="_blank" rel="noreferrer">${escapeHtml(a.name)} · ${Math.ceil(a.size / 1024)} KB</a>`,
           )
           .join("");
-        return `${divider}<article class="message ${grouped ? "grouped" : ""}" data-message="${item.id}">${grouped ? '<span class="avatar-spacer"></span>' : avatar(user)}<div class="content">${grouped ? "" : `<span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}<time>${new Date(item.created * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</time>`}${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}<button data-action="message-menu" data-id="${item.id}" title="More message options">${icon("more", "sm")}</button></div></article>`;
+        const timeLabel = new Date(item.created * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+        return `${divider}<article class="message ${grouped ? "grouped" : ""}" data-message="${item.id}">${grouped ? '<span class="avatar-spacer"></span>' : avatar(user)}${grouped ? `<time class="group-timestamp" aria-label="${escapeHtml(timeLabel)}">${escapeHtml(timeLabel)}</time>` : ""}<div class="content">${grouped ? "" : `<span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}${botBadge(user)}<time>${escapeHtml(timeLabel)}</time>`}${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}<button data-action="message-menu" data-id="${item.id}" title="More message options">${icon("more", "sm")}</button></div></article>`;
       })
       .join(
         "",
@@ -892,6 +907,7 @@
         if (!cid) throw Error("No channel yet");
         dm = null;
         page = "chat";
+        $(".layout")?.classList.remove("shownav");
         closeModal();
         render();
         if (
@@ -907,6 +923,7 @@
         dm = person(id);
         sid = cid = null;
         page = "chat";
+        $(".layout")?.classList.remove("shownav");
         closeModal();
         render();
         await loadMessages();
@@ -1675,6 +1692,8 @@
       items = [
         { label: "React", action: "reaction-picker", icon: "smile", id },
         { label: "Reply", action: "reply", icon: "chat", id },
+        { label: "Share message", action: "share-message", icon: "copy", id },
+        { label: "Copy link", action: "copy-message-link", icon: "copy", id },
       ];
       if (message && message.sender !== state.user.id && cid)
         items.push({ label: "Report message", action: "report-message", icon: "shield", id });

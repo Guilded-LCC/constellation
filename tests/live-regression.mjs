@@ -85,6 +85,8 @@ try {
   const server = ownerState.servers.find((item) => item.name === serverName);
   assert(server, "created server must persist in app_state");
   serverId = server.id;
+  const settingsSnapshot = await rpc(owner.access_token, "app_settings", { p_server: serverId, p_action: "read", p_data: {} });
+  assert(settingsSnapshot?.server?.created_at, "server settings read must include its creation timestamp");
   passed.push("server create, rail selection and Supabase persistence");
 
   // Create a category and every implemented channel type through production RPCs.
@@ -105,6 +107,10 @@ try {
   for (const [type, id] of Object.entries(channels)) assert.equal(savedServer.channels.find((item) => item.id === id)?.type, type);
   passed.push("category and TEXT/LIST/DOCS/CALENDAR/FORUM/VOICE channel persistence");
 
+  const invite = await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: serverId } });
+  await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
+  passed.push("qa-member joined the isolated test server");
+
   // Chat send/edit/react/pin/read/delete; every read is through app_messages.
   const textChannel = channels.TEXT;
   const sent = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: textChannel, body: "live regression message" } });
@@ -123,6 +129,39 @@ try {
   chat = await rpc(owner.access_token, "app_messages", { p_channel: textChannel, p_user: null });
   assert(!chat.some((item) => item.id === sent.id));
   passed.push("chat send/edit/react/pin, hard-refresh and delete persistence");
+
+  await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+  await page.locator(`.channel[data-id="${textChannel}"]`).click();
+  const groupedFirst = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: textChannel, body: "grouped message one" } });
+  const groupedSecond = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: textChannel, body: "grouped message two" } });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+  await page.locator(`.channel[data-id="${textChannel}"]`).click();
+  await page.locator(`.message[data-message="${groupedSecond.id}"]`).waitFor();
+  assert(await page.locator(`.message.grouped[data-message="${groupedSecond.id}"]`).count());
+  assert(await page.locator(".timeline .date").count());
+  const lastMessage = page.locator(`.message[data-message="${groupedSecond.id}"]`);
+  await lastMessage.hover();
+  await page.waitForTimeout(180);
+  assert.equal(await lastMessage.locator(".msgtools").evaluate((el) => getComputedStyle(el).opacity), "1");
+  assert.equal(await lastMessage.locator(".group-timestamp").evaluate((el) => getComputedStyle(el).opacity), "1");
+  await lastMessage.locator('[data-action="message-menu"]').click();
+  const messageMenu = page.locator(".context-menu");
+  for (const label of ["Edit", "Share message", "Copy link", "Pin message", "Delete"]) assert(await messageMenu.getByText(label, { exact: true }).count(), `missing menu item: ${label}`);
+  await page.keyboard.press("Escape");
+  await lastMessage.click({ button: "right" });
+  const rightClickMenu = page.locator(".context-menu");
+  for (const label of ["Reply", "Share message", "Copy link", "Edit", "Delete"]) assert(await rightClickMenu.getByText(label, { exact: true }).count(), `missing context item: ${label}`);
+  await page.screenshot({ path: "verification/live-message-menu-1280.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.locator(".layout").evaluate((el) => el.classList.contains("shownav")), false, "mobile channel selection should leave the sidebar closed");
+  await page.waitForTimeout(220);
+  await page.screenshot({ path: "verification/live-message-menu-390.png" });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.keyboard.press("Escape");
+  await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedFirst.id } });
+  await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: groupedSecond.id } });
+  passed.push("message grouping, date divider, hover timestamp/toolbar and click/right-click menus");
 
   // Attach an object, bind it to a message, then check the message read path.
   const candidateStoragePath = `channels/${textChannel}/live-regression-${crypto.randomUUID()}.txt`;
@@ -178,15 +217,12 @@ try {
   const forum = channels.FORUM;
   const topic = await rpc(owner.access_token, "app_feature_api", { p_action: "forum/create", p_payload: { channel: forum, title: "Regression topic", body: "opening" } });
   await rpc(owner.access_token, "app_feature_api", { p_action: "forum/reply", p_payload: { channel: forum, topic: topic.id, body: "first reply" } });
+  await rpc(member.access_token, "app_feature_api", { p_action: "forum/reply", p_payload: { channel: forum, topic: topic.id, body: "member reply before lock" } });
   await rpc(owner.access_token, "app_feature_api", { p_action: "forum/moderate", p_payload: { channel: forum, id: topic.id, pinned: true, locked: true } });
   feature = await rpc(owner.access_token, "app_feature_state", { p_channel: forum });
-  assert(feature.topics.some((item) => item.id === topic.id && item.pinned && item.locked && item.reply_count === 1));
-  try {
-    await rpc(owner.access_token, "app_feature_api", { p_action: "forum/reply", p_payload: { channel: forum, topic: topic.id, body: "locked reply" } });
-    blocked.push("locked forum topic accepted a reply through the live API");
-  } catch {
-    passed.push("locked forum reply rejected by live API");
-  }
+  assert(feature.topics.some((item) => item.id === topic.id && item.pinned && item.locked && item.reply_count === 2));
+  await expectDenied(() => rpc(member.access_token, "app_feature_api", { p_action: "forum/reply", p_payload: { channel: forum, topic: topic.id, body: "locked reply" } }), "non-moderator reply to locked forum topic");
+  passed.push("non-moderator locked forum reply rejected by live API");
   passed.push("FORUM topic/reply/pin/lock/refresh-read");
 
   const voice = channels.VOICE;
@@ -205,8 +241,12 @@ try {
   await page.locator(`.rail .orb[title="${serverName}"]`).click();
   await page.getByText("No upcoming events", { exact: true }).waitFor();
   assert.equal(await page.locator(".overview-about").count(), 1);
+  await page.waitForFunction(() => {
+    const text = document.querySelector(".overview-about")?.innerText || "";
+    return /Created\s+\d/.test(text);
+  }, null, { timeout: 5_000 });
   const aboutText = await page.locator(".overview-about").innerText();
-  assert.match(aboutText, /Created\s+\S+/);
+  assert.match(aboutText, /Created\s+\d/, "About card should display the real server creation date");
   const activeIcon = page.locator(`.rail .orb[data-id="${serverId}"]`);
   const visual = await activeIcon.evaluate((el) => ({ shadow: getComputedStyle(el).boxShadow, outline: getComputedStyle(el).outlineStyle, root: getComputedStyle(document.documentElement).fontSize }));
   assert(visual.shadow.includes("rgba(255, 255, 255, 0.8)"));
@@ -218,8 +258,6 @@ try {
   passed.push("overview About/date, empty Upcoming events, active rail ring, 16px root at 1280/390");
 
   // Test member sign-in and server membership through the browser after invite.
-  const invite = await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: serverId } });
-  await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
   const memberPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const memberErrors = [];
   memberPage.on("console", (message) => { if (message.type() === "error") memberErrors.push(message.text()); });
