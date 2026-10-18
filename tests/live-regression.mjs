@@ -63,6 +63,8 @@ if (process.env.RELATIONS_ONLY === "1") {
     const state = await rpc(owner.access_token, "app_state");
     const channel = state.servers.find((item) => item.id === serverId)?.channels.find((item) => item.type === "TEXT");
     assert(channel, "test server should have a text channel");
+    const calendarChannel = await rpc(owner.access_token, "app_api", { p_action: "channel/save", p_payload: { server: serverId, name: "events", type: "CALENDAR", category: "TEXT CHANNELS" } });
+    const overviewEvent = await rpc(owner.access_token, "app_feature_api", { p_action: "calendar/create", p_payload: { channel: calendarChannel.id, title: "Overview RSVP regression", starts_at: new Date(Date.now() + 86_400_000).toISOString(), description: "Live overview action" } });
     const invite = await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: serverId } });
     await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
     async function storageUpload(token, label) {
@@ -129,6 +131,44 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator(".layout").waitFor();
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(".serverhead-actions [data-action='invite']").waitFor();
+    await page.locator(".serverhead-actions [data-action='settings']").waitFor();
+    await page.locator(".serverhead-actions [data-action='invite']").click();
+    await page.locator("#modal[open]").filter({ hasText: "Invite people" }).waitFor();
+    await page.keyboard.press("Escape");
+    await page.locator("#modal[open]").waitFor({ state: "hidden" });
+    await page.locator(".serverhead-actions [data-action='settings']").click();
+    await page.locator("#modal.s-settings[open]").waitFor();
+    await page.keyboard.press("Escape");
+    await page.locator("#modal[open]").waitFor({ state: "hidden" });
+    for (const action of ["friends", "achievements", "activity", "join-server"]) {
+      await page.locator(`.rail [data-action='${action}']`).click();
+      await page.locator("#modal[open]").waitFor();
+      await page.keyboard.press("Escape");
+      await page.locator("#modal[open]").waitFor({ state: "hidden" });
+    }
+    await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.getByText("Overview RSVP regression").waitFor();
+    const maybeRsvp = page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"]`);
+    await maybeRsvp.click();
+    await page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"].selected`).waitFor();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".layout").waitFor();
+    await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"].selected`).waitFor();
+    assert.equal(await page.locator(".rail [data-action='friends']").count(), 1);
+    assert.equal(await page.locator(".rail [data-action='achievements']").count(), 1);
+    await page.locator(".overview-scroll").evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    await page.screenshot({ path: "verification/live-navigation-overview-1280.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => document.querySelector(".layout")?.classList.remove("shownav"));
+    await page.waitForTimeout(220);
+    await page.locator(".overview-scroll").evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    const overviewWidths = await page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
+    assert.equal(overviewWidths.content, overviewWidths.viewport, "mobile overview should not overflow horizontally");
+    await page.screenshot({ path: "verification/live-navigation-overview-390.png" });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    passed.push("live navigation rail, server Invite/Settings and overview RSVP persisted across hard refresh");
     await page.locator(`.channel[data-id="${channel.id}"]`).click();
     const row = page.locator(`.message[data-message="${root.id}"]`);
     await row.locator(".message-reply-preview").filter({ hasText: "public reply" }).waitFor();

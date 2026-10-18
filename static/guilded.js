@@ -53,6 +53,9 @@
     shield: "M12 2 3 6v5c0 5 3.4 8.5 9 11 5.6-2.5 9-6 9-11V6l-9-4Z",
     check: "m4 12 5 5L20 6",
     megaphone: "M3 11v2h3l11 5V6L6 11H3ZM6 13l2 6h4l-2-4M20 9v6",
+    trophy: "M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H3v2a4 4 0 0 0 4 4M17 6h4v2a4 4 0 0 1-4 4M8 4V2h8v2",
+    compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM15.5 8.5l-2 5-5 2 2-5 5-2Z",
+    sparkles: "m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3ZM19 14l1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z",
   };
   const icon = (name, size = "") =>
     `<svg class="i ${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.hash}"/></svg>`;
@@ -133,7 +136,7 @@
         catch { return {}; }
       }),
     ]);
-    const events = calendarResults.flatMap((result) => Array.isArray(result?.events) ? result.events : [])
+    const events = calendarResults.flatMap((result, index) => Array.isArray(result?.events) ? result.events.map((event) => ({ ...event, channel_id: calendarChannels[index]?.id })) : [])
       .filter((event) => Number.isFinite(Date.parse(event.starts_at)) && Date.parse(event.starts_at) >= Date.now())
       .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
     overviewInfo = {
@@ -387,13 +390,13 @@
     if (page === "chat") await loadMessages();
   }
   function rail() {
-    return `<nav class="rail" aria-label="Servers"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Home">C</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="home" title="Direct messages">${icon("chat")}</button><div class="divider"></div><button class="orb" data-action="home" title="Communities">${icon("users")}</button></nav>`;
+    return `<nav class="rail" aria-label="Navigation"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Direct messages" aria-label="Direct messages">${icon("chat")}</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server" aria-label="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="achievements" title="Badges and achievements" aria-label="Badges and achievements">${icon("trophy")}</button><button class="orb" data-action="friends" title="Friends" aria-label="Friends">${icon("users")}</button><button class="orb" data-action="join-server" title="Discover or join a server" aria-label="Discover or join a server">${icon("compass")}</button><div class="divider"></div><button class="orb" data-action="activity" title="Activity" aria-label="Activity">${icon("sparkles")}</button></nav>`;
   }
   function serverHeader(server) {
     if (!server)
-      return `<header class="serverhead"><button data-action="home"><span class="server-avatar">C</span><span class="server-title">Direct messages<small>Your conversations</small></span></button></header>`;
+      return `<header class="serverhead"><button class="serverhead-title" data-action="home"><span class="server-avatar">${icon("chat")}</span><span class="server-title">Direct messages<small>Your conversations</small></span></button></header>`;
     const banner = safeMedia(server.banner_url);
-    return `<header class="serverhead ${banner ? "has-banner" : ""}" ${banner ? `style="background-image:url('${banner}')"` : ""}><button data-action="server-menu"><span class="server-avatar">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml(server.name[0].toUpperCase())}</span><span class="server-title">${escapeHtml(server.name)}<small>Server home</small></span>${icon("chevron")}</button></header>`;
+    return `<header class="serverhead server-head-managed ${banner ? "has-banner" : ""}" ${banner ? `style="background-image:url('${banner}')"` : ""}><button class="serverhead-title" data-action="server-menu"><span class="server-avatar">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml(server.name[0].toUpperCase())}</span><span class="server-title">${escapeHtml(server.name)}<small>Server home</small></span>${icon("chevron")}</button><div class="serverhead-actions"><button data-action="invite">${icon("invite", "sm")}<span>Invite</span></button>${can("manage_server") ? `<button data-action="settings">${icon("settings", "sm")}<span>Settings</span></button>` : ""}</div></header>`;
   }
   function categoryNav(server) {
     const cats = server.categories || [];
@@ -479,7 +482,7 @@
       avatarUrl = safeMedia(s?.avatar_url),
       latest = s?.announcements || [];
     const events = overviewInfo.serverId === s?.id ? overviewInfo.events : [];
-    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div><div class="announcements-heading upcoming-heading"><h2>Upcoming events</h2></div><div class="overview-cards upcoming-events">${events.length ? events.slice(0, 5).map((event) => `<article class="overview-card"><h3>${escapeHtml(event.title || "Event")}</h3><p>${new Date(event.starts_at).toLocaleString()}</p><small>${escapeHtml(event.description || "")}</small></article>`).join("") : '<p class="muted">No upcoming events</p>'}</div></section></div>`;
+    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div><div class="announcements-heading upcoming-heading"><h2>Upcoming events</h2></div><div class="overview-cards upcoming-events">${events.length ? events.slice(0, 5).map((event) => { const response = (event.rsvps || []).find((rsvp) => rsvp.user_id === state.user.id)?.status; return `<article class="overview-card"><h3>${escapeHtml(event.title || "Event")}</h3><p>${new Date(event.starts_at).toLocaleString()}</p><small>${escapeHtml(event.description || "")}</small><div class="event-rsvp" role="group" aria-label="RSVP to ${escapeHtml(event.title || "event")}"><button class="${response === "going" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="going" title="Going" aria-label="Going">✓</button><button class="${response === "maybe" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="maybe" title="Maybe" aria-label="Maybe">?</button><button class="${response === "declined" ? "selected" : ""}" data-action="overview-rsvp" data-channel="${event.channel_id}" data-id="${event.id}" data-status="declined" title="Can't go" aria-label="Can't go">×</button></div></article>`; }).join("") : '<p class="muted">No upcoming events</p>'}</div></section></div>`;
   }
   function chatView() {
     const s = current(),
@@ -914,11 +917,33 @@
         render();
         return;
       }
+      if (action === "friends") {
+        const contacts = [...new Map((state.contacts || []).filter(Boolean).map((person) => [person.id, person])).values()];
+        show("Friends", contacts.length
+          ? contacts.map((contact) => `<button class="friend-entry" data-action="dm" data-id="${contact.id}">${avatar(contact)}<span><strong>${escapeHtml(contact.name || "Member")}</strong><small>${escapeHtml(contact.custom_status || "")}</small></span><span class="friend-presence">${escapeHtml(contact.status || "offline")}</span></button>`).join("")
+          : '<p class="muted">No friends yet. Start a direct message from the + button.</p>');
+        return;
+      }
+      if (action === "achievements") {
+        const badges = state.user?.badges || [];
+        show("Badges and achievements", badges.length
+          ? `<div class="achievement-list">${badges.map((badge) => `<span class="badge">${escapeHtml(typeof badge === "string" ? badge : badge.name || badge.label || "Badge")}</span>`).join("")}</div>`
+          : '<p class="muted">No badges have been awarded to this account yet.</p>');
+        return;
+      }
+      if (action === "activity") {
+        const recent = (state.servers || []).flatMap((server) => (server.announcements || []).map((item) => ({ ...item, server: server.name }))).slice(0, 10);
+        show("Recent activity", recent.length
+          ? recent.map((item) => `<article class="activity-entry"><strong>${escapeHtml(item.server)}</strong><p>${escapeHtml(item.body || "Announcement")}</p><small>${dayLabel(item.created)}</small></article>`).join("")
+          : '<p class="muted">You’re all caught up.</p>');
+        return;
+      }
       if (action === "server") {
         sid = id;
         cid = null;
         dm = null;
         page = "overview";
+        $(".layout")?.classList.remove("shownav");
         render();
         return;
       }
@@ -1166,6 +1191,16 @@
           done: button.checked,
         });
         await loadFeature();
+        return;
+      }
+      if (action === "overview-rsvp") {
+        await featureApi("calendar/rsvp", {
+          channel: button.dataset.channel,
+          id,
+          status: button.dataset.status,
+        });
+        overviewInfo.serverId = null;
+        await loadOverviewInfo(current());
         return;
       }
       if (action === "event-rsvp") {
