@@ -316,6 +316,7 @@
   function closeModal() {
     modal.close();
     modal.className = "";
+    delete modal.dataset.inviteCode;
     if (pendingRender && state) {
       pendingRender = false;
       render();
@@ -1405,7 +1406,7 @@
         show(
           "Join a server",
           field("invite-code", "Invite code"),
-          '<button class="secondary" data-action="browse-servers">Browse public servers</button><button class="primary" data-action="submit-join">Join server</button>',
+          '<button class="secondary" data-action="browse-servers">Browse public servers</button><button class="primary" data-action="preview-invite">Continue</button>',
         );
         return;
       }
@@ -1432,8 +1433,28 @@
         closeModal();
         return;
       }
-      if (action === "submit-join") {
-        const result = await api("server/join", { code: value("invite-code") });
+      if (action === "preview-invite") {
+        const code = value("invite-code").trim();
+        if (!code) throw new Error("Enter an invitation code to continue");
+        const invite = await rpc("app_invite_preview", { p_code: code });
+        modal.dataset.inviteCode = code;
+        const hasServerImage = !!safeMedia(invite.avatar_url);
+        const serverMark = hasServerImage
+          ? `<img src="${safeMedia(invite.avatar_url)}" alt="">`
+          : escapeHtml((invite.name || "S")[0].toUpperCase());
+        const inviterAvatar = safeMedia(invite.inviter_avatar)
+          ? `<img src="${safeMedia(invite.inviter_avatar)}" alt="">`
+          : escapeHtml((invite.inviter_name || "M")[0].toUpperCase());
+        show(
+          "",
+          `<div class="invite-preview-shell"><button class="invite-close icon-button" data-action="close" aria-label="Close">${icon("close")}</button><section class="invite-preview-copy"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><div class="invite-account"><span>${avatar(state.user)}</span><span><small>Joining as</small><strong>${escapeHtml(state.user.name || state.user.username || "Member")}</strong></span></div><button class="primary invite-continue" data-action="accept-invite">Continue</button><button class="invite-cancel" data-action="close">Maybe later</button></section><aside class="invite-preview-art"><div class="invite-server-mark ${hasServerImage ? "has-image" : ""}">${serverMark}</div></aside></div>`,
+        );
+        modal.classList.add("invite-dialog");
+        modal.dataset.inviteCode = code;
+        return;
+      }
+      if (action === "accept-invite") {
+        const result = await api("server/join", { code: modal.dataset.inviteCode || "" });
         sid = result.id;
         cid = null;
         dm = null;

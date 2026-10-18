@@ -54,7 +54,8 @@ async function expectDenied(fn, label) {
 
 if (process.env.RELATIONS_ONLY === "1") {
   const owner = await magicToken(ownerEmail), member = await magicToken(memberEmail);
-  let serverId = null, browser, botProfileId = null, ownerProfileId = null;
+  let serverId = null, inviteTestServerId = null, browser, botProfileId = null, ownerProfileId = null;
+  let inviteTestCode = null;
   const storagePaths = [];
   const browserErrors = [];
   let originalUiPreferences = null;
@@ -75,7 +76,14 @@ if (process.env.RELATIONS_ONLY === "1") {
     const calendarChannel = await rpc(owner.access_token, "app_api", { p_action: "channel/save", p_payload: { server: serverId, name: "events", type: "CALENDAR", category: "TEXT CHANNELS" } });
     const overviewEvent = await rpc(owner.access_token, "app_feature_api", { p_action: "calendar/create", p_payload: { channel: calendarChannel.id, title: "Overview RSVP regression", starts_at: new Date(Date.now() + 86_400_000).toISOString(), description: "Live overview action" } });
     const invite = await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: serverId } });
+    const invitePreview = await rpc(member.access_token, "app_invite_preview", { p_code: invite.code });
+    assert.equal(invitePreview.id, serverId);
+    assert.equal(invitePreview.inviter_name, ownerState.user.name);
+    await expectDenied(() => rpc(member.access_token, "app_invite_preview", { p_code: "invalid-qa-invite" }), "invalid invite preview");
     await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
+    const inviteTestServer = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Guilded QA Invite ${Date.now()}` } });
+    inviteTestServerId = inviteTestServer.id;
+    inviteTestCode = (await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: inviteTestServerId } })).code;
     async function storageUpload(token, label) {
       const path = `channels/${channel.id}/relations-${label}-${crypto.randomUUID()}.txt`;
       const response = await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "POST", headers: { apikey: anonKey, Authorization: `Bearer ${token}`, "Content-Type": "text/plain", "x-upsert": "false" }, body: `storage permission ${label}` });
@@ -203,6 +211,32 @@ if (process.env.RELATIONS_ONLY === "1") {
       await page.keyboard.press("Escape");
       await page.locator("#modal[open]").waitFor({ state: "hidden" });
     }
+    const invitePage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    invitePage.on("console", (message) => { if (message.type() === "error") browserErrors.push(message.text()); });
+    invitePage.on("pageerror", (error) => browserErrors.push(error.message));
+    await invitePage.goto(appUrl, { waitUntil: "domcontentloaded" });
+    await invitePage.evaluate(async (session) => {
+      const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+      const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      if (result.error) throw result.error;
+    }, member);
+    await invitePage.reload({ waitUntil: "domcontentloaded" });
+    await invitePage.locator(".layout").waitFor();
+    await invitePage.locator(".rail [data-action='join-server']").click();
+    await invitePage.locator("#invite-code").fill(inviteTestCode);
+    await invitePage.locator("#modal [data-action='preview-invite']").click();
+    await invitePage.locator("#modal.invite-dialog").filter({ hasText: "Guilded QA Invite" }).waitFor();
+    await invitePage.locator("#modal.invite-dialog").filter({ hasText: "QA Owner invited you to join" }).waitFor();
+    await invitePage.screenshot({ path: "verification/live-invite-preview-1280.png" });
+    await invitePage.setViewportSize({ width: 390, height: 844 });
+    await invitePage.screenshot({ path: "verification/live-invite-preview-390.png" });
+    await invitePage.locator("#modal [data-action='accept-invite']").click();
+    await invitePage.locator(`.rail .orb[data-id="${inviteTestServerId}"].active`).waitFor();
+    assert.equal((await rpc(member.access_token, "app_state")).servers.some((server) => server.id === inviteTestServerId), true);
+    assert.equal(await invitePage.evaluate(() => document.documentElement.scrollWidth), 390);
+    assert.equal(browserErrors.length, 0, browserErrors.join(" | "));
+    console.log("PASS live invite preview: authorized bearer-code preview, inviter/server metadata, browser acceptance, persistence, desktop/mobile and empty console");
+    await invitePage.close();
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
     await page.getByText("Overview RSVP regression").waitFor();
     const maybeRsvp = page.locator(`[data-action="overview-rsvp"][data-id="${overviewEvent.id}"][data-status="maybe"]`);
@@ -267,6 +301,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     if (botProfileId) await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${botProfileId}`, { method: "PATCH", headers: { apikey: anonKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ is_bot: false }) }).catch(() => {});
     for (const path of storagePaths) await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }).catch(() => {});
     if (serverId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: serverId } }).catch(() => {});
+    if (inviteTestServerId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: inviteTestServerId } }).catch(() => {});
   }
   process.exit(0);
 }

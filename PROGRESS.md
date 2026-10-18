@@ -55,3 +55,4 @@
 - Server favorites: DONE — added the server-menu favorite toggle backed by `app_ui_state`; the marker survives hard refresh, the test restores original QA preferences, and focused plus full live owner/member suites pass.
 - Server directory: DONE — added a searchable Supabase-backed server list with Favorites/All servers, member counts, create/join actions and per-server favorite toggles; desktop/mobile browser checks pass without horizontal overflow.
 - Custom status: DONE — live HTTPS migration/RPC applied; users can set status text and emoji, changes persist and render under names, cross-user profile edits are rejected, focused and full authenticated regression suites pass, and desktop/mobile captures are saved.
+- Invitation join flow: DONE — live preview RPC exposes only invite-scoped server/inviter details, invalid codes are rejected, acceptance is confirmed in-browser and persisted, and 1280/390 screenshots are captured with empty console.
