@@ -45,7 +45,7 @@ for (const [label, token] of [
   }
   console.log(`PASS ${label} blocked from ${staffActions.length} staff actions`);
   for (const table of [
-    "platform_staff", "staff_badges", "user_suspensions", "server_suspensions",
+    "platform_staff", "staff_badges", "profile_badges", "user_suspensions", "server_suspensions",
     "staff_reports", "staff_audit",
   ]) {
     const response = await fetch(`${url}/rest/v1/${table}?select=*`, {

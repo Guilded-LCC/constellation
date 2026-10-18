@@ -42,7 +42,8 @@
 - npm run check and git diff --check passed (Git printed normal CRLF conversion warnings only).
 - Verification, security results, cleanup and all screenshot/comparison links are collected in verification/REPORT.md.
 - Source was formatted for readability. No application data or secret credentials were added to local files. Test artifacts and development dependencies are local as requested for verification.
-- Task 2 platform admin/staff panel: PARTIAL — migration and standalone `/admin` UI authored; migration not applied or DB-negative tested because linked database access is unavailable here; localhost UI boundary and mocked layout smoke pass.
+- Task 2 platform admin/staff panel: PARTIAL — migration and standalone `/admin` UI authored; migration not applied or DB-negative tested because linked database access is unavailable here; localhost signed-out route passed, live dashboard remains unverified.
 - Task 3 Guilded visual pass: PARTIAL — refreshed rail/sidebar/member/chat styling and admin page previews pass at 1280/390 with empty browser console; authenticated visual comparison remains blocked by unavailable live sign-in, and Threads/replies/right-side detail panels remain gaps.
 - New session STEP 0: BLOCKED-EXTERNAL — no SUPABASE_DB_URL or SUPABASE_ACCESS_TOKEN; CLI can list the linked healthy project, but migration list and dry-run push both stall at “Initialising login role...” and were stopped; no migrations applied.
 - Latest STEP 0: BLOCKED-EXTERNAL — .env is ignored and absent from Git history; Node/pg connection attempt timed out before select version() completed; no migrations or live tests run.
+- STEP 1: PARTIAL — removed the simulated staff panel and fixed counters; dashboard reads staff_action('dashboard'), and missing responses show unavailable rather than fabricated zeros; real anonymous /admin route passed at 1280/390, but signed-in live counts were not exercised.

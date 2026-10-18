@@ -10,7 +10,7 @@
     ["staff", "Staff"],
     ["audit", "Audit log"],
   ];
-  let rpc, user, loadedFor = null, page = "dashboard", data = null, badgeOptions = [], selectedUser = null, selectedServer = null, query = "", status = "open", busy = false, loadError = "";
+  let rpc, user, loadedFor = null, page = "dashboard", data = null, badgeOptions = [], selectedUser = null, selectedServer = null, staffSearchResults = [], query = "", status = "open", busy = false, loadError = "";
   const root = () => document.querySelector("#app");
   const call = (action, payload = {}) => rpc("staff_action", { p_action: action, p_payload: payload });
   const errorText = (error) => {
@@ -27,9 +27,10 @@
   function shell(body, note = "") {
     root().innerHTML = `<main class="staff-shell"><header class="staff-header"><div class="staff-brand"><span class="staff-symbol">C</span><div><strong>Constellation Staff</strong><small>Trust &amp; safety workspace</small></div></div><span class="staff-identity">${esc(user?.name || user?.username || "Staff")} <i>${user?.is_platform_admin ? "Platform admin" : "Staff"}</i></span><a class="staff-return" href="/">Back to Constellation</a></header><div class="staff-accent"></div><div class="staff-layout"><aside class="staff-nav"><p>WORKSPACE</p>${nav.map(([key, name]) => `<button class="${page === key ? "active" : ""}" data-staff-action="nav" data-page="${key}">${esc(name)}</button>`).join("")}<div class="staff-nav-bottom">Restricted to platform staff<br>Every change is audited.</div></aside><section class="staff-content"><div class="staff-page-head"><div><span>CONSTELLATION / ${esc(page.toUpperCase())}</span><h1>${esc(nav.find(([key]) => key === page)?.[1] || "Staff")}</h1></div>${button("refresh", "Refresh", "subtle")}</div>${note ? `<div class="staff-alert">${esc(note)}</div>` : ""}${body}<div class="staff-error" role="status"></div></section></div></main>`;
   }
-  function stat(title, value, detail = "") { return `<article class="staff-stat"><span>${esc(title)}</span><strong>${esc(value ?? 0)}</strong><small>${esc(detail)}</small></article>`; }
+  function stat(title, value, detail = "") { return `<article class="staff-stat"><span>${esc(title)}</span><strong>${esc(value ?? "—")}</strong><small>${esc(detail)}</small></article>`; }
   function dashboard() {
-    const d = data || {};
+    if (!data) return `<p class="staff-empty">Dashboard counts are unavailable.</p>`;
+    const d = data;
     return `<div class="staff-stats">${stat("Users", d.users)}${stat("Servers", d.servers)}${stat("Messages today", d.messages_today)}${stat("Open reports", d.open_reports)}${stat("Suspended accounts", d.suspended)}${stat("Signups · 7 days", d.signups_7d)}</div><section class="staff-section"><h2>Recent staff activity</h2>${(d.activity || []).length ? d.activity.map((item) => `<article class="staff-audit-row"><strong>${esc(item.action)}</strong><span>${esc(item.target_type)} ${esc(item.target_id)}</span><small>${esc(item.reason || "No reason supplied")} · ${new Date(item.created_at).toLocaleString()}</small></article>`).join("") : `<p class="staff-empty">No staff activity yet.</p>`}</section>`;
   }
   function searchBox(placeholder, kind) { return `<form class="staff-search" data-staff-search="${kind}"><input name="query" value="${esc(query)}" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}"><button class="staff-button" type="submit">Search</button></form>`; }
@@ -52,7 +53,7 @@
   }
   function staff() {
     const rows = data || [];
-    return `${searchBox("Find a user to add to platform staff", "staff-search")}${(window.staffSearchResults || []).map((item) => record(item.name || item.username, item.email, "staff-add", item.id, "Add staff")).join("")}<div class="staff-records">${rows.map((item) => `<article class="staff-record"><div><strong>${esc(item.profile?.name || item.profile?.username)}</strong><small>${esc(item.user_id)} · added ${new Date(item.added_at).toLocaleDateString()}</small></div><div class="staff-inline"><select data-staff-level="${esc(item.user_id)}"><option value="staff" ${item.level === "staff" ? "selected" : ""}>Staff</option><option value="admin" ${item.level === "admin" ? "selected" : ""}>Admin</option></select><button class="staff-button" data-staff-action="staff-level-save" data-id="${esc(item.user_id)}">Save</button><button class="staff-button danger" data-staff-action="staff-remove" data-id="${esc(item.user_id)}">Remove</button></div></article>`).join("") || `<p class="staff-empty">No platform staff configured.</p>`}</div>`;
+    return `${searchBox("Find a user to add to platform staff", "staff-search")}${staffSearchResults.map((item) => record(item.name || item.username, item.email, "staff-add", item.id, "Add staff")).join("")}<div class="staff-records">${rows.map((item) => `<article class="staff-record"><div><strong>${esc(item.profile?.name || item.profile?.username)}</strong><small>${esc(item.user_id)} · added ${new Date(item.added_at).toLocaleDateString()}</small></div><div class="staff-inline"><select data-staff-level="${esc(item.user_id)}"><option value="staff" ${item.level === "staff" ? "selected" : ""}>Staff</option><option value="admin" ${item.level === "admin" ? "selected" : ""}>Admin</option></select><button class="staff-button" data-staff-action="staff-level-save" data-id="${esc(item.user_id)}">Save</button><button class="staff-button danger" data-staff-action="staff-remove" data-id="${esc(item.user_id)}">Remove</button></div></article>`).join("") || `<p class="staff-empty">No platform staff configured.</p>`}</div>`;
   }
   function audit() {
     const rows = data || [];
@@ -90,7 +91,7 @@
   }
   async function act(action, id, buttonEl) {
     try {
-      if (action === "nav") { page = buttonEl.dataset.page; data = null; selectedUser = selectedServer = null; window.staffSearchResults = []; await load(); return; }
+      if (action === "nav") { page = buttonEl.dataset.page; data = null; selectedUser = selectedServer = null; staffSearchResults = []; await load(); return; }
       if (action === "refresh") { await load(); return; }
       if (action === "user") { selectedUser = await call("user/get", { user_id: id }); render(); return; }
       if (action === "server") { selectedServer = await call("server/get", { server_id: id }); render(); return; }
@@ -132,7 +133,7 @@
     const action = form.dataset.staffSearch, fields = Object.fromEntries(new FormData(form));
     try {
       if (action === "badge-save") { await call("badge/save", fields); data = await call("badges/list"); }
-      else if (action === "staff-search") { query = fields.query || ""; window.staffSearchResults = await call("users/search", { query }); }
+      else if (action === "staff-search") { query = fields.query || ""; staffSearchResults = await call("users/search", { query }); }
       else if (action === "audit") { query = fields.query || ""; data = await call("audit", { query }); }
       else { query = fields.query || ""; data = await call(`${action}/search`, { query }); }
       render();

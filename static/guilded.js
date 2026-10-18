@@ -282,6 +282,21 @@
     }
   }
   async function refresh(renderAll = true) {
+    if (!supabase) {
+      state = null;
+      if (renderAll) render();
+      return;
+    }
+    const sessionResult = await supabase.auth.getSession();
+    if (sessionResult.error) throw sessionResult.error;
+    if (!sessionResult.data?.session) {
+      state = null;
+      sid = null;
+      cid = null;
+      dm = null;
+      if (renderAll) render();
+      return;
+    }
     await rpc("ensure_profile");
     state = normalizeState(await rpc("app_state"));
     state = state || {
