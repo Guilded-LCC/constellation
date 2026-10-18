@@ -835,7 +835,10 @@
         (!pins || item.pinned) &&
         item.body.toLowerCase().includes(search.toLowerCase()),
     );
-    root.innerHTML = `<div class="welcome"><div class="bigicon">${icon(dm ? "chat" : "hash")}</div><h1>${dm ? "A conversation with " + escapeHtml(dm.name) : "Welcome to #" + escapeHtml(channel?.name || "general")}</h1><p>${escapeHtml(dm ? "This is the beginning of your direct messages." : channel?.topic || "This is the beginning of this channel.")}</p></div>${pins ? '<div class="date">Pinned messages</div>' : ""}${visible
+    const welcome = !visible.length && !search && !pins
+      ? `<div class="welcome"><div class="bigicon">${icon(dm ? "chat" : "hash")}</div><h1>${dm ? "A conversation with " + escapeHtml(dm.name) : "Welcome to #" + escapeHtml(channel?.name || "general")}</h1><p>${escapeHtml(dm ? "This is the beginning of your direct messages." : channel?.topic || "This is the beginning of this channel.")}</p></div>`
+      : "";
+    root.innerHTML = `${welcome}${pins ? '<div class="date">Pinned messages</div>' : ""}${visible
       .map((item) => {
         const user = person(item.sender),
           role = topRole(user),

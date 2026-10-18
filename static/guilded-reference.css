@@ -4,7 +4,9 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .rail .orb:hover{border-radius:13px;background:#41444e}
 .rail .orb.active{background:#343740;color:#fff;outline:2px solid #e8e9ec;outline-offset:1px;border-radius:14px}
 .rail .orb.active:before{display:none}
-.rail .brand,.rail .brand.active{background:#f5c400;color:#1d2025;outline:0}
+.rail .brand{background:#343740;color:#a8abb4;outline:0;box-shadow:none}
+.rail .brand:hover{background:#41444e;color:#fff}
+.rail .brand.active{background:#24262c;color:#a8abb4;outline:2px solid #f5c400;outline-offset:1px}
 .rail .divider{width:40px;background:#393c45;margin:2px 0}
 .rail .rail-spacer{flex:1}
 .rail .orb img,.rail .orb .avatar{width:100%;height:100%;border-radius:14px;object-fit:cover}

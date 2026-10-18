@@ -487,6 +487,56 @@ try {
   await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
   passed.push("qa-member joined the isolated test server");
 
+  // Direct messages must be discoverable and readable by both participants after refresh.
+  const memberUser = (await rpc(member.access_token, "app_state")).user;
+  const ownerUser = ownerState.user;
+  const previousDirectMessages = await rpc(owner.access_token, "app_messages", { p_channel: null, p_user: memberUser.id });
+  for (const item of previousDirectMessages.filter((message) => message.body.startsWith("direct message regression"))) {
+    await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: item.id } });
+  }
+  await page.locator(".rail [data-action='home']").click();
+  assert.equal(await page.locator(".rail .brand").evaluate((el) => getComputedStyle(el).outlineWidth), "2px", "active direct-message rail icon should use the Guilded gold outline");
+  await page.locator(".sidebar [data-action='new-dm']").first().click();
+  await page.locator("#dm-username").fill(memberUser.username);
+  await page.locator("#modal [data-action='open-dm']").click();
+  const dmBody = "Hey, nice to see you here!";
+  await page.locator("#message").fill(dmBody);
+  await page.locator("#compose").evaluate((form) => form.requestSubmit());
+  await page.locator(".message").filter({ hasText: dmBody }).waitFor();
+  assert.equal(await page.locator(".timeline .welcome").count(), 0, "existing messages should replace the empty conversation welcome");
+  await page.screenshot({ path: "verification/live-dm-1280.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator(".layout").evaluate((el) => el.classList.remove("shownav"));
+  await page.waitForTimeout(220);
+  const closedDmSidebar = await page.locator(".sidebar").boundingBox();
+  assert(closedDmSidebar.x + closedDmSidebar.width <= 0, `mobile direct-message screenshot should show the closed navigation drawer (bounds ${JSON.stringify(closedDmSidebar)}, layout ${await page.locator(".layout").getAttribute("class")})`);
+  await page.screenshot({ path: "verification/live-dm-390.png" });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  let dmMessages = await rpc(member.access_token, "app_messages", { p_channel: null, p_user: ownerUser.id });
+  const persistedDirectMessage = dmMessages.find((item) => item.body === dmBody);
+  assert(persistedDirectMessage, "recipient must read the direct message through Supabase");
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator(".rail [data-action='home']").click();
+  await page.locator(`.sidebar .channel[data-action='dm'][data-id='${memberUser.id}']`).click();
+  await page.locator(".message").filter({ hasText: dmBody }).waitFor();
+  await page.evaluate(async (session) => {
+    const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+    const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+    if (result.error) throw result.error;
+  }, member);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator(".rail [data-action='home']").click();
+  await page.locator(`.sidebar .channel[data-action='dm'][data-id='${ownerUser.id}']`).click();
+  await page.locator(".message").filter({ hasText: dmBody }).waitFor();
+  await page.evaluate(async (session) => {
+    const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+    const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+    if (result.error) throw result.error;
+  }, owner);
+  await page.reload({ waitUntil: "networkidle" });
+  await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: persistedDirectMessage.id } });
+  passed.push("direct message create, recipient access, sidebar rediscovery and hard-refresh persistence for both accounts");
+
   // Chat send/edit/react/pin/read/delete; every read is through app_messages.
   const textChannel = channels.TEXT;
   const sent = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: textChannel, body: "live regression message" } });
