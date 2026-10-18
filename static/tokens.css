@@ -21,3 +21,10 @@
   --sidebar-width: 266px;
   --members-width: 240px;
 }
+
+@media (max-width: 700px) {
+  :root {
+    --rail-width: 64px;
+    --sidebar-width: 266px;
+  }
+}
