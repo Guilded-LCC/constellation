@@ -1,0 +1,23 @@
+:root {
+  color-scheme: dark;
+  --rail: #1e2025;
+  --sidebar: #25282e;
+  --main: #32353d;
+  --member-panel: #2b2e35;
+  --raised: #3a3d46;
+  --hover: #4a4d57;
+  --input: #202227;
+  --line: #41444c;
+  --text: #f4f5f6;
+  --muted: #b8bac3;
+  --dim: #9a9da6;
+  --gold: #f5c400;
+  --gold-hover: #ffda3e;
+  --link: #5bb8fa;
+  --online: #43d440;
+  --danger: #ed5e67;
+  --radius: 7px;
+  --rail-width: 70px;
+  --sidebar-width: 290px;
+  --members-width: 270px;
+}

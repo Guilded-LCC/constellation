@@ -42,3 +42,5 @@
 - npm run check and git diff --check passed (Git printed normal CRLF conversion warnings only).
 - Verification, security results, cleanup and all screenshot/comparison links are collected in verification/REPORT.md.
 - Source was formatted for readability. No application data or secret credentials were added to local files. Test artifacts and development dependencies are local as requested for verification.
+- Task 2 platform admin/staff panel: PARTIAL — migration and standalone `/admin` UI authored; migration not applied or DB-negative tested because linked database access is unavailable here; localhost UI boundary and mocked layout smoke pass.
+- Task 3 Guilded visual pass: PARTIAL — refreshed rail/sidebar/member/chat styling and admin page previews pass at 1280/390 with empty browser console; authenticated visual comparison remains blocked by unavailable live sign-in, and Threads/replies/right-side detail panels remain gaps.

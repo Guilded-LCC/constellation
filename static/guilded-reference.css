@@ -1,0 +1,87 @@
+html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
+.rail{gap:9px;padding:12px 0 10px;overflow-y:auto;scrollbar-width:none}
+.rail .orb{width:48px;height:48px;border-radius:15px;background:#343740;font-size:18px}
+.rail .orb:hover{border-radius:13px;background:#41444e}
+.rail .orb.active{background:#343740;color:#fff;outline:2px solid #e8e9ec;outline-offset:1px;border-radius:14px}
+.rail .orb.active:before{display:none}
+.rail .brand,.rail .brand.active{background:#f5c400;color:#1d2025;outline:0}
+.rail .divider{width:40px;background:#393c45;margin:2px 0}
+.rail .rail-spacer{flex:1}
+.rail .orb img,.rail .orb .avatar{width:100%;height:100%;border-radius:14px;object-fit:cover}
+.sidebar{border-right:0;background:#25282e}
+.serverhead{min-height:86px;background-color:#343036;border-bottom:0}
+.serverhead>button{gap:10px;padding:12px 14px}
+.serverhead .server-avatar{width:42px;height:42px;border-radius:8px}
+.serverhead .server-title{font-size:20px;font-weight:750}
+.serverhead .server-title small{margin-top:1px;font-size:14px;color:#c3c4cb}
+.sidebar-search{display:none}
+.nav{padding:4px 8px 18px}
+.nav-heading{padding:12px 10px 5px;font-size:12px;letter-spacing:.04em}
+.nav-item,.channel{min-height:36px;margin:1px 0;padding:5px 9px;border-radius:6px;font-size:16px;font-weight:500;color:#b9bbc4}
+.nav-item{gap:9px}
+.channel{padding-left:12px}
+.nav-item.active,.channel.active{background:#3a3d46}
+.channel-wrap{display:flex;align-items:center;position:relative}
+.channel-wrap>.channel{flex:1;min-width:0}
+.channel-actions{position:absolute;right:4px;display:flex;gap:1px;padding-left:5px;background:#3a3d46;opacity:0;transition:opacity .12s}
+.channel-wrap:hover .channel-actions,.channel-wrap:focus-within .channel-actions{opacity:1}
+.channel-actions .icon-button{width:25px;height:25px;color:#c4c6cf}
+.cat-head{margin:10px 2px 2px}
+.cat-head .cat-toggle{font-size:12px}
+.profilebar{position:relative;min-height:68px;padding:8px 8px;background:#1e2025;border-top:1px solid #343740}
+.profilebar .avatar{width:38px;height:38px;border-radius:50%}
+.profilebar .who{flex:1}
+.profilebar strong{font-size:14px}
+.profilebar small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profilebar .status-dot,.member .status-dot{border-color:#1e2025}
+.topbar{height:54px;padding:0 17px;border-bottom-color:#41444d}
+.topbar strong{font-size:18px}
+.topbar .topic{font-size:13px}
+.top-search{height:32px;width:190px;font-size:13px}
+.topbar .icon-button{width:34px;height:34px}
+.timeline{padding:18px 22px 20px}
+.welcome{padding:28px 4px 20px;margin-bottom:10px}
+.welcome h1{font-size:22px}
+.welcome p{font-size:15px}
+.date{margin:20px 0 12px;font-size:13px}
+.message{gap:12px;margin:0 -10px;padding:8px 10px;border-radius:3px}
+.message .avatar{width:40px;height:40px;border-radius:50%}
+.message .name{font-size:16px}
+.message time{font-size:12px}
+.message p{font-size:16px;line-height:1.45}
+.message.grouped{padding-top:2px}
+.message .avatar-spacer{width:40px;height:1px;flex:none}
+.message.grouped .content>p:first-child{margin-top:0}
+.msgtools{position:absolute;z-index:3;top:-17px;right:7px;display:flex;gap:2px;padding:4px;background:#292c33;border:1px solid #494c55;border-radius:7px;box-shadow:0 5px 15px #0005;opacity:0;pointer-events:none;transform:translateY(2px);transition:opacity .12s,transform .12s}
+.message:hover .msgtools,.message:focus-within .msgtools{opacity:1;pointer-events:auto;transform:none}
+.msgtools button{width:30px;height:29px;display:grid;place-items:center;border-right:1px solid #454852;border-radius:0;color:#bec0c9}
+.msgtools button:last-child{border-right:0}
+.msgtools button:hover{background:#40434d;color:white}
+.composer{padding:0 15px 12px}
+.composebox{min-height:54px;border-radius:8px;background:#494c56}
+.composebox .attach{width:54px;height:54px;border-right:1px solid #646772;border-radius:0}
+.composebox textarea{font-size:15px}
+.composebox .send{display:none}
+.composebox>.icon-button:not(.attach){margin-right:9px}
+.members{background:#32353d;padding:8px 10px 18px}
+.member-tabs{display:flex;gap:10px;height:46px;margin:-8px -10px 8px;padding:0 18px;border-bottom:1px solid #42454e}
+.member-tabs button{width:40px;border-radius:0;color:#aeb1ba}
+.member-tabs button.active{border-bottom:2px solid #d5d7de;color:#fff}
+.member-group h2{font-size:14px;font-weight:700;color:#aeb0b8;margin:15px 2px 8px}
+.member{min-height:48px;padding:6px 4px;gap:10px}
+.member .avatar{width:38px;height:38px;border-radius:50%}
+.member .who strong{font-size:14px}
+.member .who small{font-size:12px;color:#a6a8b0}
+.overview-banner{height:210px;background-image:radial-gradient(circle at 15% 25%,#73758055 0 2px,transparent 3px),radial-gradient(circle at 78% 50%,#c5c8d033 0 1px,transparent 2px),linear-gradient(120deg,#22252c,#3b3840,#252831);background-size:38px 38px,54px 54px,auto}
+.overview-body{max-width:none;margin:-54px auto 0;padding:0 clamp(22px,5vw,72px) 48px}
+.overview-avatar{width:104px;height:104px;border-radius:9px;font-size:46px}
+.overview-body h1{font-size:30px}
+.overview-body>p{font-size:16px}
+.overview-cards{gap:12px}
+.overview-card{min-height:145px;padding:17px;border-radius:7px;background:#3a3d46}
+.overview-card h3{font-size:16px}
+.overview-card p,.overview-card small{font-size:13px}
+.auth{background:radial-gradient(ellipse at 50% 8%,#34304f 0,#252638 38%,#1d2028 78%)}
+.auth-brand .mark,.empty-home .home-mark{border-radius:10px}
+@media(max-width:1100px){:root{--members-width:270px}.members{display:none}}
+@media(max-width:700px){.nav-item,.channel{font-size:16px}.topbar{height:50px}.message{padding-left:7px;padding-right:7px}.message .avatar{width:36px;height:36px}.message .avatar-spacer{width:36px}.overview-body{padding-left:18px;padding-right:18px}}

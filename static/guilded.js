@@ -52,6 +52,7 @@
     copy: "M9 9h12v12H9zM5 17H3V3h14v2",
     shield: "M12 2 3 6v5c0 5 3.4 8.5 9 11 5.6-2.5 9-6 9-11V6l-9-4Z",
     check: "m4 12 5 5L20 6",
+    megaphone: "M3 11v2h3l11 5V6L6 11H3ZM6 13l2 6h4l-2-4M20 9v6",
   };
   const icon = (name, size = "") =>
     `<svg class="i ${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.hash}"/></svg>`;
@@ -294,6 +295,14 @@
       status: "online",
     };
     state.user.status = state.user.status || "online";
+    const routeServer = new URLSearchParams(location.search).get("server");
+    const routeChannel = new URLSearchParams(location.search).get("channel");
+    if (routeServer && routeChannel && state.servers.some((server) => server.id === routeServer && server.channels.some((channel) => channel.id === routeChannel))) {
+      sid = routeServer;
+      cid = routeChannel;
+      dm = null;
+      page = "chat";
+    }
     if (!preferencesLoaded) {
       const preferences = await rpc("app_ui_state", { p_data: null });
       collapsed = Object.fromEntries(
@@ -314,11 +323,11 @@
     if (page === "chat") await loadMessages();
   }
   function rail() {
-    return `<nav class="rail" aria-label="Servers"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Home">G</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server">${icon("plus", "lg")}</button><button class="orb rail-bottom" data-action="profile" title="Your profile">${avatar(state.user)}</button></nav>`;
+    return `<nav class="rail" aria-label="Servers"><button class="orb brand ${!sid ? "active" : ""}" data-action="home" title="Home">C</button><div class="divider"></div>${state.servers.map((server) => `<button class="orb ${server.id === sid ? "active" : ""}" data-action="server" data-id="${server.id}" title="${escapeHtml(server.name)}">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml((server.name || "S")[0].toUpperCase())}</button>`).join("")}<button class="orb" data-action="create-server" title="Create server">${icon("plus", "lg")}</button><span class="rail-spacer"></span><button class="orb rail-bottom" data-action="home" title="Direct messages">${icon("chat")}</button><div class="divider"></div><button class="orb" data-action="home" title="Communities">${icon("users")}</button></nav>`;
   }
   function serverHeader(server) {
     if (!server)
-      return `<header class="serverhead"><button data-action="home"><span class="server-avatar">G</span><span class="server-title">Direct messages<small>Your conversations</small></span></button></header>`;
+      return `<header class="serverhead"><button data-action="home"><span class="server-avatar">C</span><span class="server-title">Direct messages<small>Your conversations</small></span></button></header>`;
     const banner = safeMedia(server.banner_url);
     return `<header class="serverhead ${banner ? "has-banner" : ""}" ${banner ? `style="background-image:url('${banner}')"` : ""}><button data-action="server-menu"><span class="server-avatar">${safeMedia(server.avatar_url) ? `<img src="${safeMedia(server.avatar_url)}" alt="">` : escapeHtml(server.name[0].toUpperCase())}</span><span class="server-title">${escapeHtml(server.name)}<small>Server home</small></span>${icon("chevron")}</button></header>`;
   }
@@ -338,65 +347,67 @@
         cat: { id: "uncategorized", name: "UNCATEGORIZED", allowed: [] },
         channels: orphan,
       });
-    return groups
-      .map(
-        ({ cat, channels }) =>
-          `<div class="cat-head" data-category="${cat.id}" draggable="${can("manage_channels") && cat.id !== "uncategorized"}"><button class="cat-toggle ${collapsed[cat.id] ? "rotated" : ""}" data-action="toggle-category" data-id="${cat.id}">${icon("chevron", "sm")}<span>${escapeHtml(cat.name)}</span></button>${can("manage_channels") && cat.id !== "uncategorized" ? `<span class="cat-actions"><button class="icon-button" data-action="new-channel" data-category="${cat.id}" title="Create channel">${icon("plus", "sm")}</button><button class="icon-button" data-action="edit-category" data-id="${cat.id}" title="Category settings">${icon("settings", "sm")}</button></span>` : ""}</div>${collapsed[cat.id] ? "" : channels.map((channel) => `<div class="channel-wrap" draggable="${can("manage_channels")}" data-channel="${channel.id}"><button class="channel ${cid === channel.id && page === "chat" ? "active" : ""}" data-action="channel" data-id="${channel.id}">${icon(channel.allowed?.length || cat.allowed?.length ? "lock" : channel.type === "VOICE" ? "mic" : "hash", "sm")}<span class="channel-name">${escapeHtml(channel.name)}</span></button></div>`).join("")}`,
-      )
-      .join("");
+    const glyph = (channel) => {
+      const type = String(channel.type || "TEXT").toUpperCase();
+      if (channel.allowed?.length || channel.category_allowed?.length) return "lock";
+      if (type === "VOICE") return "mic";
+      if (type === "ANNOUNCEMENT" || channel.readonly) return "megaphone";
+      if (type === "CALENDAR") return "calendar";
+      if (type === "FORUM") return "list";
+      if (type === "DOCS") return "audit";
+      if (type === "MEDIA") return "image";
+      if (type === "LIST") return "check";
+      return "hash";
+    };
+    return groups.map(({ cat, channels }) =>
+      `<div class="cat-head" data-category="${cat.id}" draggable="${can("manage_channels") && cat.id !== "uncategorized"}"><button class="cat-toggle ${collapsed[cat.id] ? "rotated" : ""}" data-action="toggle-category" data-id="${cat.id}">${icon("chevron", "sm")}<span>${escapeHtml(cat.name)}</span></button>${can("manage_channels") && cat.id !== "uncategorized" ? `<span class="cat-actions"><button class="icon-button" data-action="new-channel" data-category="${cat.id}" title="Create channel">${icon("plus", "sm")}</button><button class="icon-button" data-action="edit-category" data-id="${cat.id}" title="Category settings">${icon("settings", "sm")}</button></span>` : ""}</div>${collapsed[cat.id] ? "" : channels.map((channel) => `<div class="channel-wrap" draggable="${can("manage_channels")}" data-channel="${channel.id}"><button class="channel ${cid === channel.id && page === "chat" ? "active" : ""}" data-action="channel" data-id="${channel.id}">${icon(glyph(channel), "sm")}<span class="channel-name">${escapeHtml(channel.name)}</span></button>${can("manage_channels") ? `<span class="channel-actions"><button class="icon-button" data-action="invite" title="Invite people">${icon("invite", "sm")}</button><button class="icon-button" data-action="edit-channel" data-id="${channel.id}" title="Channel settings">${icon("settings", "sm")}</button></span>` : ""}</div>`).join("")}`,
+    ).join("");
   }
   function sidebar() {
     const server = current();
-    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}${state.user?.platform_staff ? `<button class="nav-item" data-action="staff-panel">${icon("shield", "sm")}<span>Staff panel</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong><small>${escapeHtml(state.user.status || "online")}</small></span><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button></footer></aside>`;
+    return `<aside class="sidebar">${serverHeader(server)}<button class="sidebar-search" data-action="quick-switch">${icon("search", "sm")} Search ${escapeHtml(server?.name || "messages")} <span style="margin-left:auto">Ctrl K</span></button><nav class="nav" aria-label="Sections and channels">${server ? `<div class="nav-heading">Sections</div><button class="nav-item ${page === "overview" ? "active" : ""}" data-action="overview">${icon("home", "sm")}<span>Overview</span></button><button class="nav-item" data-action="members-page">${icon("users", "sm")}<span>Members</span></button>${can("manage_server") || can("view_audit") ? `<button class="nav-item ${page === "audit" ? "active" : ""}" data-action="audit-page">${icon("audit", "sm")}<span>Audit log</span></button>` : ""}<div class="nav-heading">Channels ${can("manage_channels") ? `<button data-action="new-category" title="Create category">${icon("plus", "sm")}</button>` : ""}</div>${categoryNav(server)}` : `<div class="nav-heading">Direct messages <button data-action="new-dm" title="New conversation">${icon("plus", "sm")}</button></div>${[...new Map([...(state.contacts || []), ...(dm ? [dm] : [])].map((user) => [user.id, user])).values()].map((user) => `<button class="channel ${dm?.id === user.id ? "active" : ""}" data-action="dm" data-id="${user.id}">${avatar(user)}<span class="channel-name">${escapeHtml(user.name)}</span></button>`).join("")}<button class="channel" data-action="new-dm">${icon("plus", "sm")}<span>New conversation</span></button>`}</nav><footer class="profilebar"><span class="avatar-wrap">${avatar(state.user)}<i class="status-dot ${escapeHtml(state.user.status || "online")}"></i></span><span class="who"><strong>${escapeHtml(state.user.name)}</strong><small>${escapeHtml(state.user.custom_status || "")}</small></span><button class="icon-button" data-action="profile" title="User settings">${icon("settings")}</button><button class="icon-button" data-action="user-menu" title="More account options">${icon("more")}</button></footer></aside>`;
   }
   function memberList() {
     const server = current();
     if (!server) return '<aside class="members"></aside>';
-    const members = (server.members || []).filter(Boolean),
-      roles = server.roles || [];
+    const members = (server.members || []).filter(Boolean), roles = server.roles || [];
     const groups = new Map();
     for (const member of members) {
-      const hoist = roles.find(
-          (role) => role.hoist && member.roles?.includes(role.id),
-        ),
-        name =
-          member.status === "invisible" ? "Offline" : hoist?.id || "Online";
+      const role = topRole(member),
+        name = member.status === "invisible" ? "Offline" : role?.id || "Member";
       if (!groups.has(name)) groups.set(name, []);
       groups.get(name).push(member);
     }
     const rank = (id) =>
-      id === "Online"
-        ? 10000
-        : id === "Offline"
-          ? 10001
-          : roles.findIndex((r) => r.id === id);
+      id === "Offline" ? 10001 : id === "Member" ? 10000 : roles.findIndex((r) => r.id === id);
     const ordered = [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b));
-    return `<aside class="members" aria-label="Members">${ordered
+    return `<aside class="members" aria-label="Members"><div class="member-tabs"><button class="active" aria-label="Members" title="Members">${icon("users")}</button><button disabled aria-label="Threads unavailable" title="Message threads are not available yet">${icon("list")}</button></div>${ordered
       .map(
         ([id, people]) =>
-          `<section class="member-group"><h2>${escapeHtml(roles.find((r) => r.id === id)?.name || id)} — ${people.length}</h2>${people
+          `<section class="member-group"><h2>${people.length} ${escapeHtml(roles.find((r) => r.id === id)?.name || id)}</h2>${people
             .map((member) => {
               const role = topRole(member);
-              return `<button class="member ${member.status === "invisible" ? "offline" : ""}" data-action="member" data-id="${member.id}"><span class="avatar-wrap">${avatar(member)}<i class="status-dot ${escapeHtml(member.status || "online")}"></i></span><span class="who"><strong><span style="${roleTextStyle(role)}">${escapeHtml(member.name || "Member")}</span> ${roleIcon(role)}</strong><small>${escapeHtml(member.status || "online")}</small></span></button>`;
+              return `<button class="member ${member.status === "invisible" ? "offline" : ""}" data-action="member" data-id="${member.id}"><span class="avatar-wrap">${avatar(member)}<i class="status-dot ${escapeHtml(member.status || "online")}"></i></span><span class="who"><strong><span style="${roleTextStyle(role)}">${escapeHtml(member.name || "Member")}</span> ${roleIcon(role)}</strong><small>${escapeHtml(member.custom_status || (member.status === "online" ? "" : member.status || ""))}</small></span></button>`;
             })
             .join("")}</section>`,
-      )
-      .join("")}</aside>`;
+      ).join("")}<button class="member-invite" data-action="invite">${icon("invite")}<span>Invite</span></button></aside>`;
   }
   function topbar(title, topic = "", kind = "hash") {
-    return `<header class="topbar"><button class="icon-button mobiletoggle" data-action="nav" aria-label="Open navigation">${icon("menu")}</button>${icon(kind)}<strong>${escapeHtml(title)}</strong>${topic ? `<span class="topic">${escapeHtml(topic)}</span>` : '<span class="topic"></span>'}<div class="top-actions">${page === "chat" ? `<input class="top-search" id="top-search" aria-label="Search messages" placeholder="Search messages" value="${escapeHtml(search)}"><button class="icon-button" data-action="pins" title="${pins ? "Show all messages" : "Pinned messages"}">${icon("pin")}</button>` : ""}${page === "chat" ? "" : `<button class="icon-button" data-action="quick-switch" title="Quick switch">${icon("search")}</button>`}${current() ? `<button class="icon-button" data-action="memberlist" title="Toggle members">${icon("users")}</button>` : ""}</div></header>`;
+    return `<header class="topbar"><button class="icon-button mobiletoggle" data-action="nav" aria-label="Open navigation">${icon("menu")}</button>${icon(kind)}<strong>${escapeHtml(title)}</strong>${topic ? `<span class="topic">${escapeHtml(topic)}</span>` : '<span class="topic"></span>'}<div class="top-actions">${page === "chat" ? `<input class="top-search" id="top-search" aria-label="Search messages" placeholder="Search messages" value="${escapeHtml(search)}"><button class="icon-button" data-action="pins" title="${pins ? "Show all messages" : "Pinned messages"}">${icon("pin")}</button><button class="icon-button" data-action="channel-menu" title="More channel options">${icon("more")}</button>` : ""}${current() ? `<button class="icon-button" data-action="memberlist" title="Toggle members">${icon("users")}</button>` : ""}</div></header>`;
   }
   function overview() {
     const s = current();
     const banner = safeMedia(s?.banner_url),
       avatarUrl = safeMedia(s?.avatar_url),
       latest = s?.announcements || [];
-    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "S")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div></section></div>`;
+    return `${topbar("Overview", "", "home")}<div class="overview-scroll"><div class="overview-banner" ${banner ? `style="background-image:url('${banner}')"` : ""}></div><section class="overview-body"><div class="overview-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="">` : escapeHtml((s?.name || "C")[0].toUpperCase())}</div><h1>${escapeHtml(s?.name)}</h1><p>${escapeHtml(s?.description || "A place for your community to talk and build together.")}</p><div class="overview-actions"><button class="primary" data-action="invite">${icon("invite", "sm")} Invite people</button>${can("manage_server") ? `<button class="secondary" data-action="settings">${icon("settings", "sm")} Customize server</button>` : ""}</div><div class="announcements-heading"><h2>Latest announcements</h2></div><div class="overview-cards">${latest.length ? latest.map((item) => `<button class="overview-card" data-action="channel" data-id="${item.channel_id}"><h3>${escapeHtml(item.body)}</h3><p>${avatar(item.author)} ${escapeHtml(item.author?.name || "Member")} · ${dayLabel(item.created)}</p><small>in ${escapeHtml(item.channel)}</small></button>`).join("") : '<p class="muted">No announcements yet.</p>'}</div></section></div>`;
   }
   function chatView() {
     const s = current(),
       channel = s?.channels.find((item) => item.id === cid);
-    return `${topbar(dm?.name || channel?.name || "Channel", dm ? "Direct message" : channel?.topic || "", dm ? "chat" : channel?.type === "VOICE" ? "mic" : "hash")}<div class="timeline" id="timeline"></div><form id="compose" class="composer"><div class="composebox"><button class="icon-button attach" type="button" data-action="attach" title="Attach a file" aria-label="Attach a file">${icon("paperclip")}</button><input id="chat-attachment" type="file" hidden multiple><textarea id="message" maxlength="4000" aria-label="Message" placeholder="Message ${escapeHtml(dm ? "@" + dm.name : "#" + (channel?.name || "channel"))}"></textarea><button class="icon-button" type="button" data-action="emoji" title="Insert emoji">${icon("smile")}</button><button class="primary send" title="Send message" aria-label="Send message">${icon("send", "sm")}</button></div>${pendingAttachments.length ? `<div class="pending-files">${pendingAttachments.map((x) => `<span>${escapeHtml(x.name)} · ${Math.ceil(x.size / 1024)} KB</span>`).join("")}</div>` : ""}<small>Enter to send · Shift + Enter for a new line</small></form>`;
+    const type = channel?.type?.toUpperCase();
+    const channelIcon = type === "VOICE" ? "mic" : type === "CALENDAR" ? "calendar" : type === "FORUM" ? "list" : type === "DOCS" ? "audit" : type === "MEDIA" ? "image" : type === "LIST" ? "check" : channel?.readonly ? "megaphone" : "hash";
+    return `${topbar(dm?.name || channel?.name || "Channel", dm ? "Direct message" : channel?.topic || "", dm ? "chat" : channelIcon)}<div class="timeline" id="timeline"></div><form id="compose" class="composer"><div class="composebox"><button class="icon-button attach" type="button" data-action="attach" title="Add an attachment" aria-label="Add an attachment">${icon("plus", "lg")}</button><input id="chat-attachment" type="file" hidden multiple><textarea id="message" maxlength="4000" aria-label="Message" placeholder="Message ${escapeHtml(dm ? "@" + dm.name : "#" + (channel?.name || "channel"))}"></textarea><button class="icon-button" type="button" data-action="emoji" title="Insert emoji">${icon("smile")}</button><button class="primary send" title="Send message" aria-label="Send message">${icon("send", "sm")}</button></div>${pendingAttachments.length ? `<div class="pending-files">${pendingAttachments.map((x) => `<span>${escapeHtml(x.name)} · ${Math.ceil(x.size / 1024)} KB</span>`).join("")}</div>` : ""}<small>Enter to send · Shift + Enter for a new line</small></form>`;
   }
   function featureView() {
     const channel = current()?.channels.find((item) => item.id === cid);
@@ -451,8 +462,21 @@
       : '<p class="muted">No actions match these filters.</p>';
   }
   function render() {
+    if (/^\/admin\/?$/.test(location.pathname)) {
+      if (!state?.user?.is_platform_staff) {
+        $("#app").innerHTML = '<main class="not-found"><span class="mark">C</span><h1>This page does not exist</h1><p>Check the address and try again.</p><a href="/">Back to Constellation</a></main>';
+        return;
+      }
+      if (window.renderStaffPage) window.renderStaffPage({ rpc, user: state.user });
+      else $("#app").innerHTML = '<main class="not-found"><h1>Staff tools unavailable</h1><p>Reload Constellation to try again.</p></main>';
+      return;
+    }
     if (!state) {
       renderAuth();
+      return;
+    }
+    if (state.user?.suspended_reason) {
+      $("#app").innerHTML = `<main class="suspended-screen"><div class="suspended-card"><span class="suspended-mark">!</span><h1>Your account is suspended</h1><p>${escapeHtml(state.user.suspended_reason)}</p><button class="primary" data-action="logout">Sign out</button></div></main>`;
       return;
     }
     const server = current();
@@ -475,7 +499,7 @@
         selectedChannel?.type,
       );
     $("#app").innerHTML =
-      `<div class="layout ${membersVisible ? "" : "members-hidden"}">${rail()}${sidebar()}<main class="main">${server ? (page === "overview" ? overview() : page === "audit" && (can("manage_server") || can("view_audit")) ? auditView() : isFeature ? featureView() : chatView()) : dm ? chatView() : `<section class="empty-home"><div class="home-mark">G</div><h1>Your conversations start here</h1><p>Open a server, create your own, or send a direct message.</p><div class="actions"><button class="primary" data-action="create-server">Create a server</button><button class="secondary" data-action="join-server">Join a server</button></div><button data-action="new-dm">Start a direct message</button></section>`}</main>${memberList()}</div>`;
+      `<div class="layout ${membersVisible ? "" : "members-hidden"}">${rail()}${sidebar()}<main class="main">${server ? (page === "overview" ? overview() : page === "audit" && (can("manage_server") || can("view_audit")) ? auditView() : isFeature ? featureView() : chatView()) : dm ? chatView() : `<section class="empty-home"><div class="home-mark">C</div><h1>Your conversations start here</h1><p>Open a server, create your own, or send a direct message.</p><div class="actions"><button class="primary" data-action="create-server">Create a server</button><button class="secondary" data-action="join-server">Join a server</button></div><button data-action="new-dm">Start a direct message</button></section>`}</main>${memberList()}</div>`;
     if (page === "chat") {
       lastMessageKey = "";
       renderMessages();
@@ -566,7 +590,7 @@
     const follow =
       root.scrollHeight - root.scrollTop - root.clientHeight < 90 ||
       !root.innerHTML;
-    let previousDate = "";
+    let previousDate = "", previousSender = "", previousTimestamp = 0;
     const visible = messages.filter(
       (item) =>
         (!pins || item.pinned) &&
@@ -576,12 +600,15 @@
       .map((item) => {
         const user = person(item.sender),
           role = topRole(user),
-          day = dayLabel(item.created);
+          day = dayLabel(item.created),
+          grouped = item.sender === previousSender && day === previousDate && item.created - previousTimestamp < 300;
         const divider =
           day !== previousDate
             ? `<div class="date">${escapeHtml(day)}</div>`
             : "";
         previousDate = day;
+        previousSender = item.sender;
+        previousTimestamp = item.created;
         const attachments = (item.attachments || [])
           .map((a) =>
             /^image\//.test(a.type) && attachmentURLs[a.id]
@@ -589,7 +616,7 @@
               : `<a class="file-chip" href="${attachmentURLs[a.id] || "#"}" target="_blank" rel="noreferrer">${escapeHtml(a.name)} · ${Math.ceil(a.size / 1024)} KB</a>`,
           )
           .join("");
-        return `${divider}<article class="message" data-message="${item.id}">${avatar(user)}<div class="content"><span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}<time>${new Date(item.created * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</time>${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}</div></article>`;
+        return `${divider}<article class="message ${grouped ? "grouped" : ""}" data-message="${item.id}">${grouped ? '<span class="avatar-spacer"></span>' : avatar(user)}<div class="content">${grouped ? "" : `<span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}<time>${new Date(item.created * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</time>`}${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}<button data-action="message-menu" data-id="${item.id}" title="More message options">${icon("more", "sm")}</button></div></article>`;
       })
       .join(
         "",
@@ -1019,12 +1046,57 @@
         settings();
         return;
       }
+      if (action === "user-menu") {
+        const entries = [];
+        if (state.user?.is_platform_staff)
+          entries.push({ label: "Staff panel", action: "staff-panel", icon: "shield" });
+        entries.push({ label: "Log out", action: "logout", icon: "logout" });
+        menu(entries, event.clientX, event.clientY);
+        return;
+      }
+      if (action === "channel-menu") {
+        const items = [{ label: "Pinned messages", action: "pins", icon: "pin" }];
+        if (can("manage_channels")) items.push({ label: "Create channel", action: "new-channel", icon: "hash" }, { label: "Create category", action: "new-category", icon: "plus" }, { label: "Channel settings", action: "edit-channel", icon: "settings", id: cid });
+        items.push({ label: "Invite people", action: "invite", icon: "invite" });
+        menu(items, event.clientX, event.clientY);
+        return;
+      }
+      if (action === "message-menu") {
+        const message = messages.find((item) => item.id === id);
+        const items = [];
+        if (message?.sender === state.user.id) items.push({ label: "Edit", action: "edit-message", icon: "edit", id });
+        items.push({ label: "Share message", action: "share-message", icon: "copy", id }, { label: "Copy link", action: "copy-message-link", icon: "copy", id });
+        if (cid && can("manage_messages")) items.push({ label: message?.pinned ? "Unpin message" : "Pin message", action: "pin", icon: "pin", id });
+        if (message?.sender === state.user.id || (cid && can("manage_messages"))) items.push({ label: "Delete", action: "delete-message", icon: "trash", id, danger: true });
+        menu(items, event.clientX, event.clientY);
+        return;
+      }
+      if (action === "share-message" || action === "copy-message-link") {
+        const message = messages.find((item) => item.id === id);
+        if (!message) return;
+        const text = action === "share-message" ? message.body : `${location.origin}/?server=${encodeURIComponent(sid || "")}&channel=${encodeURIComponent(cid || "")}#message-${encodeURIComponent(id)}`;
+        await navigator.clipboard.writeText(text);
+        toast(action === "share-message" ? "Message copied to clipboard." : "Message link copied.");
+        return;
+      }
       if (action === "staff-panel") {
-        show(
-          "Platform staff",
-          `<p class="notice">Assign a staff badge by username. This is logged and restricted to platform staff.</p><label>Username<input id="staff-username"></label><select id="staff-badge"><option value="staff">Staff</option><option value="verified">Verified</option><option value="early-supporter">Early supporter</option></select>`,
-          `<button class="primary" data-action="staff-badge">Assign badge</button>`,
-        );
+        if (!state.user?.is_platform_staff) return;
+        location.assign("/admin");
+        return;
+      }
+      if (action === "report-message") {
+        const message = messages.find((item) => item.id === id);
+        if (!message || message.sender === state.user.id || !cid) return;
+        show("Report message", '<label for="report-reason">Why are you reporting this message?</label><textarea id="report-reason" maxlength="2000" required></textarea>', `<button class="secondary" data-action="close">Cancel</button><button class="primary" data-action="submit-message-report" data-id="${id}">Send report</button>`);
+        return;
+      }
+      if (action === "submit-message-report") {
+        const message = messages.find((item) => item.id === id);
+        const reason = value("report-reason").trim();
+        if (!message || !reason) throw Error("Add a reason for this report.");
+        await rpc("staff_action", { p_action: "report/create", p_payload: { message_id: id, target_user: message.sender, reason } });
+        closeModal();
+        toast("Your report was sent to the moderation team.");
         return;
       }
       if (action === "staff-badge") {
@@ -1552,6 +1624,8 @@
         { label: "React", action: "reaction-picker", icon: "smile", id },
         { label: "Reply", action: "reply", icon: "chat", id },
       ];
+      if (message && message.sender !== state.user.id && cid)
+        items.push({ label: "Report message", action: "report-message", icon: "shield", id });
       if (message?.sender === state.user.id)
         items.push({ label: "Edit", action: "edit-message", icon: "edit", id });
       if (cid && can("manage_messages"))
@@ -1726,7 +1800,7 @@
     try {
       await refresh();
     } catch {
-      renderAuth();
+      render();
     }
   })();
   setInterval(async () => {

@@ -1,0 +1,13 @@
+@media (max-width: 760px) {
+  .staff-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand return" "identity identity";
+    gap: 6px 12px;
+    padding: 10px 14px;
+  }
+  .staff-brand { grid-area: brand; min-width: 0; }
+  .staff-symbol { width: 30px; height: 30px; flex: none; }
+  .staff-identity { grid-area: identity; margin: 0; font-size: 12px; }
+  .staff-return { grid-area: return; font-size: 12px; white-space: nowrap; }
+}

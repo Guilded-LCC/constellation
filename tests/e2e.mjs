@@ -50,6 +50,37 @@ if (process.env.CONSTELLATION_QA_PASSWORD) {
   await page.waitForTimeout(800);
   errors.length = 0;
 }
+if (!process.env.CONSTELLATION_ADMIN_KEY && !process.env.CONSTELLATION_QA_PASSWORD) {
+  await page.goto(`${url}/admin`, { waitUntil: "networkidle" });
+  if (!(await page.getByText("This page does not exist").count()))
+    throw Error("A signed-out visitor should receive the normal not-found page at /admin");
+  await page.screenshot({ path: path.join(output, "phase-c-access-denied-1280.png") });
+  await page.evaluate(() => window.renderStaffPage({
+    user: { id: "ui-preview", name: "Staff Preview", is_platform_staff: true, is_platform_admin: true },
+    rpc: async (_name, args) => {
+      const action = args.p_action;
+      if (action === "dashboard") return { users: 24, servers: 7, messages_today: 132, open_reports: 2, suspended: 1, signups_7d: 4, activity: [] };
+      if (action === "users/search" || action === "servers/search" || action === "reports" || action === "audit") return [];
+      if (action === "badges/list") return [{ id: "staff", name: "Staff", position: 0 }];
+      if (action === "staff/list") return [];
+      return {};
+    },
+  }));
+  await page.waitForSelector(".staff-shell");
+  await page.locator('[data-staff-action="nav"][data-page="users"]').click();
+  await page.getByRole("heading", { name: "Users" }).waitFor();
+  await page.locator('[data-staff-action="nav"][data-page="dashboard"]').click();
+  await page.getByRole("heading", { name: "Dashboard" }).waitFor();
+  await page.screenshot({ path: path.join(output, "phase-c-dashboard-preview-1280.png") });
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.screenshot({ path: path.join(output, "phase-c-dashboard-preview-390.png") });
+  await page.goto(`${url}/admin`, { waitUntil: "networkidle" });
+  await page.screenshot({ path: path.join(output, "phase-c-access-denied-390.png") });
+  await browser.close();
+  if (errors.length) throw Error(`Browser console errors: ${errors.join(" | ")}`);
+  console.log("anonymous /admin access boundary passed");
+  process.exit(0);
+}
 await page.screenshot({
   path: path.join(output, "phase-current-1280.png"),
 });
