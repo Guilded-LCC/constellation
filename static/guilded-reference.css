@@ -77,7 +77,7 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .member .custom-status-emoji{margin-right:4px}
 .status-dot.offline{background:#8d9199}
 .bot-badge{display:inline-flex;align-items:center;margin-left:5px;padding:1px 4px;border-radius:3px;background:#6a6d78;color:#fff;font-size:9px;font-weight:800;line-height:1.25;vertical-align:2px}
-.overview-banner{height:210px;background-image:radial-gradient(circle at 15% 25%,#73758055 0 2px,transparent 3px),radial-gradient(circle at 78% 50%,#c5c8d033 0 1px,transparent 2px),linear-gradient(120deg,#22252c,#3b3840,#252831);background-size:38px 38px,54px 54px,auto}
+.overview-banner{height:210px;background-image:radial-gradient(ellipse at 25% 100%,#6a5a3c55,transparent 55%),radial-gradient(ellipse at 82% 0%,#55596544,transparent 48%),linear-gradient(120deg,#292b32,#373943,#252831);background-size:cover;background-repeat:no-repeat}
 .overview-body{max-width:none;margin:-54px auto 0;padding:0 clamp(22px,5vw,72px) 48px}
 .overview-avatar{width:104px;height:104px;border-radius:9px;font-size:46px}
 .overview-body h1{font-size:30px}
