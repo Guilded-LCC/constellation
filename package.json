@@ -1,0 +1,9 @@
+{
+  "name": "constellation-cloud-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --check static/app.js && node --check static/config.js"
+  }
+}
