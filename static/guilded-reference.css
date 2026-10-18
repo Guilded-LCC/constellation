@@ -219,6 +219,10 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .composer{padding:0 15px 28px}
 .composebox{border:4px solid #f5c400;border-radius:9px}
 .composer>small{display:none}
+.message:hover{background:#4a4947;box-shadow:inset 2px 0 #f5c400}
+.member .avatar{width:38px;height:38px;border-radius:50%}
+.member .who strong{font-size:16px}
+.member .who small{font-size:14px}
 .layout.legacy-nav .sidebar{grid-column:2;grid-row:1;min-height:0}
 .layout.legacy-nav .main{grid-column:3;grid-row:1;min-height:0}
 .layout.legacy-nav .members{grid-column:4;grid-row:1;min-height:0}
