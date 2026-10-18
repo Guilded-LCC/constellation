@@ -41,7 +41,11 @@ window.createSettingsUI = function ({
   ];
   const groups = {
     General: [
-      ["administrator", "Administrator", "Grants every server permission."],
+      [
+        "administrator",
+        "Administrator",
+        "Grants every permission and bypasses channel overrides",
+      ],
       [
         "manage_server",
         "Update server",
@@ -75,6 +79,7 @@ window.createSettingsUI = function ({
     Chat: [
       ["view_channels", "Read messages", "Read channels you have access to"],
       ["send_messages", "Send messages", "Post messages in chat channels"],
+      ["add_reactions", "Add reactions", "React to messages"],
       ["manage_messages", "Manage messages", "Delete and pin messages"],
       [
         "manage_channels",
@@ -432,7 +437,12 @@ window.createSettingsUI = function ({
             color: "#f6c500",
             color2: "",
             emoji: "",
-            permissions: [],
+            permissions: [
+              "view_channels",
+              "send_messages",
+              "upload_media",
+              "add_reactions",
+            ],
             position: Math.max(0, ...roles.map((r) => r.position)) + 1,
             icon_url: "",
             self_assignable: false,

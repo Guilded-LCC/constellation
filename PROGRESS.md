@@ -27,6 +27,7 @@
 - known gaps: chat attachments, profiles/badges/staff, remaining channel types are not implemented or verified. No platform-admin bootstrap SQL has been applied.
 
 ## Budget continuation — 2026-10-18
+- TASK 1 permissions: PARTIAL — unified owner/admin/role evaluator and upload checks are authored; root cause is the attachment Storage insert policy relying on membership/send access and omitting `upload_media`; live DB regression uploads remain unrun because Supabase CLI DB queries hit a local Bun paging-file failure.
 - SPEC: DONE — `SPEC.md` now carries the remaining Phase B–D scope and the focused verification budget.
 - Phase A roles/webhooks: DONE — role list/default placeholders, popover color controls, dirty-state saving and visual rhythm were refined; `webhook-post` deployed with Supabase CLI.
 - BLOCKED-EXTERNAL: existing-account magic links redirect to `http://localhost:3000`, the project Site URL, rather than localhost:8766; update Supabase Auth Site URL/redirect allow-list to finish that browser path.
