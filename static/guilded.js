@@ -79,6 +79,13 @@
     dm = null,
     page = "home",
     messages = [],
+    messageRelations = { replies: [], threads: [] },
+    replyTarget = null,
+    privateReply = false,
+    replyMention = true,
+    rightPanelTab = "members",
+    activeThread = null,
+    threadData = null,
     featureState = {},
     pendingAttachments = [],
     attachmentURLs = {},
@@ -267,6 +274,8 @@
   }
   const featureApi = (action, payload = {}) =>
     rpc("app_feature_api", { p_action: action, p_payload: payload });
+  const relationApi = (action, payload = {}) =>
+    rpc("app_message_relations", { p_action: action, p_payload: payload });
   function toast(message) {
     const el = $("#toast");
     el.textContent = message;
@@ -430,6 +439,11 @@
   function memberList() {
     const server = current();
     if (!server) return '<aside class="members"></aside>';
+    if (rightPanelTab === "threads") {
+      const thread = threadData;
+      const threadView = thread ? `<section class="thread-panel"><button class="thread-back" data-action="threads-back">‹ Threads</button><div class="thread-title"><strong>Thread</strong>${thread.archived ? '<span class="thread-archived">Archived thread</span>' : ""}</div><article class="thread-root"><strong>${escapeHtml(thread.root?.author?.name || person(thread.root?.sender)?.name || "Member")}</strong><p>${escapeHtml(thread.root?.body || "")}</p></article><div class="thread-replies">${(thread.replies || []).map((reply) => `<article><strong>${escapeHtml(reply.author?.name || person(reply.author_id)?.name || "Member")}</strong><p>${escapeHtml(reply.body)}</p></article>`).join("") || '<p class="muted">No replies yet.</p>'}</div>${!thread.archived || can("manage_messages") ? `<form id="thread-compose" class="thread-compose"><textarea id="thread-message" maxlength="4000" placeholder="Reply to thread"></textarea><button class="primary">Reply</button></form>` : ""}${can("manage_messages") ? `<button class="thread-archive" data-action="thread-archive" data-archived="${!thread.archived}">${thread.archived ? "Unarchive thread" : "Archive thread"}</button>` : ""}</section>` : `<div class="thread-list">${(messageRelations.threads || []).map((item) => { const root=messages.find((message)=>message.id===item.root_message_id); return `<button class="thread-list-item" data-action="thread-open" data-id="${item.id}"><strong>${escapeHtml(root?.body || "Message thread")}</strong><small>${Number(item.reply_count)||0} ${(Number(item.reply_count)||0)===1?"reply":"replies"}${item.archived?" · Archived thread":""}</small></button>`; }).join("") || '<p class="muted thread-empty">No threads in this channel yet.</p>'}</div>`;
+      return `<aside class="members thread-sidebar" aria-label="Threads"><div class="member-tabs"><button data-action="right-tab" data-tab="members" aria-label="Members" title="Members">${icon("users")}</button><button class="active" data-action="right-tab" data-tab="threads" aria-label="Threads" title="Threads">${icon("list")}</button></div>${threadView}</aside>`;
+    }
     const members = (server.members || []).filter(Boolean), roles = server.roles || [];
     const groups = new Map();
     for (const member of members) {
@@ -444,7 +458,7 @@
       id === "Offline" ? 10001 : id === "Member" ? 10000 : roles.findIndex((r) => r.id === id);
     const ordered = [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b));
     const about = page === "overview" ? `<section class="overview-about"><h2>About</h2><p><strong>${members.length}</strong> ${members.length === 1 ? "member" : "members"}</p><p>Created ${overviewInfo.createdAt ? new Date(overviewInfo.createdAt).toLocaleDateString() : "date unavailable"}</p></section>` : "";
-    return `<aside class="members" aria-label="Members"><div class="member-tabs"><button class="active" aria-label="Members" title="Members">${icon("users")}</button><button disabled aria-label="Threads unavailable" title="Message threads are not available yet">${icon("list")}</button></div>${about}${ordered
+    return `<aside class="members" aria-label="Members"><div class="member-tabs"><button class="active" data-action="right-tab" data-tab="members" aria-label="Members" title="Members">${icon("users")}</button><button data-action="right-tab" data-tab="threads" aria-label="Threads" title="Threads">${icon("list")}</button></div>${about}${ordered
       .map(
         ([id, people]) =>
           `<section class="member-group"><h2>${people.length} ${escapeHtml(roles.find((r) => r.id === id)?.name || id)}</h2>${people
@@ -472,7 +486,8 @@
       channel = s?.channels.find((item) => item.id === cid);
     const type = channel?.type?.toUpperCase();
     const channelIcon = type === "VOICE" ? "mic" : type === "CALENDAR" ? "calendar" : type === "FORUM" ? "list" : type === "DOCS" ? "audit" : type === "MEDIA" ? "image" : type === "LIST" ? "check" : channel?.readonly ? "megaphone" : "hash";
-    return `${topbar(dm?.name || channel?.name || "Channel", dm ? "Direct message" : channel?.topic || "", dm ? "chat" : channelIcon)}<div class="timeline" id="timeline"></div><form id="compose" class="composer"><div class="composebox"><button class="icon-button attach" type="button" data-action="attach" title="Add an attachment" aria-label="Add an attachment">${icon("plus", "lg")}</button><input id="chat-attachment" type="file" hidden multiple><textarea id="message" maxlength="4000" aria-label="Message" placeholder="Message ${escapeHtml(dm ? "@" + dm.name : "#" + (channel?.name || "channel"))}"></textarea><button class="icon-button" type="button" data-action="emoji" title="Insert emoji">${icon("smile")}</button><button class="primary send" title="Send message" aria-label="Send message">${icon("send", "sm")}</button></div>${pendingAttachments.length ? `<div class="pending-files">${pendingAttachments.map((x) => `<span>${escapeHtml(x.name)} · ${Math.ceil(x.size / 1024)} KB</span>`).join("")}</div>` : ""}<small>Enter to send · Shift + Enter for a new line</small></form>`;
+    const target = replyTarget && messages.find((item) => item.id === replyTarget);
+    return `${topbar(dm?.name || channel?.name || "Channel", dm ? "Direct message" : channel?.topic || "", dm ? "chat" : channelIcon)}<div class="timeline" id="timeline"></div><form id="compose" class="composer">${target ? `<div class="reply-bar"><span class="reply-connector"></span><span class="reply-context">Replying to <strong>${escapeHtml(person(target.sender)?.name || "Member")}</strong><small>${escapeHtml(target.body.slice(0,120))}</small></span>${can("private_replies") && !dm ? `<button type="button" class="reply-private ${privateReply?"enabled":""}" data-action="reply-private" aria-pressed="${privateReply}">Private reply</button>` : ""}<button type="button" class="reply-mention ${replyMention?"enabled":""}" data-action="reply-mention" aria-label="Mention parent author" title="Mention parent author">@</button><button type="button" class="reply-cancel" data-action="reply-cancel" aria-label="Cancel reply">×</button></div>` : ""}<div class="composebox"><button class="icon-button attach" type="button" data-action="attach" title="Add an attachment" aria-label="Add an attachment">${icon("plus", "lg")}</button><input id="chat-attachment" type="file" hidden multiple><textarea id="message" maxlength="4000" aria-label="Message" placeholder="Message ${escapeHtml(dm ? "@" + dm.name : "#" + (channel?.name || "channel"))}"></textarea><button class="icon-button" type="button" data-action="emoji" title="Insert emoji">${icon("smile")}</button><button class="primary send" title="Send message" aria-label="Send message">${icon("send", "sm")}</button></div>${pendingAttachments.length ? `<div class="pending-files">${pendingAttachments.map((x) => `<span>${escapeHtml(x.name)} · ${Math.ceil(x.size / 1024)} KB</span>`).join("")}</div>` : ""}<small>Enter to send · Shift + Enter for a new line</small></form>`;
   }
   function featureView() {
     const channel = current()?.channels.find((item) => item.id === cid);
@@ -589,6 +604,18 @@
       messages = (Array.isArray(data) ? data : []).filter(
         (item) => item && typeof item.body === "string",
       );
+      if (cid && !dm) {
+        try {
+          const related = await relationApi("list", { channel: cid });
+          messageRelations = {
+            replies: Array.isArray(related?.replies) ? related.replies : [],
+            threads: Array.isArray(related?.threads) ? related.threads : [],
+          };
+        } catch (error) {
+          console.error("[Constellation] Could not load message replies and threads", error);
+          messageRelations = { replies: [], threads: [] };
+        }
+      } else messageRelations = { replies: [], threads: [] };
       const attachments = messages.flatMap((item) => item.attachments || []);
       await Promise.all(
         attachments.map(async (attachment) => {
@@ -650,7 +677,7 @@
     const root = $("#timeline");
     if (!root) return;
     const channel = current()?.channels.find((item) => item.id === cid),
-      key = JSON.stringify([messages, search, pins, cid, dm?.id]);
+      key = JSON.stringify([messages, messageRelations, search, pins, cid, dm?.id, replyTarget]);
     if (key === lastMessageKey) return;
     lastMessageKey = key;
     const follow =
@@ -682,8 +709,18 @@
               : `<a class="file-chip" href="${attachmentURLs[a.id] || "#"}" target="_blank" rel="noreferrer">${escapeHtml(a.name)} · ${Math.ceil(a.size / 1024)} KB</a>`,
           )
           .join("");
+        const replies = messageRelations.replies.filter((reply) => reply.parent_message_id === item.id);
+        const replyMarkup = replies.map((reply) => {
+          const ownPrivate = reply.visibility === "private" && (reply.author_id === state.user.id || item.sender === state.user.id);
+          const moderatorPrivate = reply.visibility === "private" && !ownPrivate && can("manage_messages");
+          const mentionsMe = (reply.body || "").toLowerCase().includes("@" + (state.user.username || state.user.name || "").toLowerCase());
+          const style = ownPrivate ? "private" : moderatorPrivate ? "moderator" : mentionsMe ? "mention" : "normal";
+          return `<button class="message-reply-preview reply-${style} ${replyTarget === item.id ? "reply-selected" : ""}" data-action="reply-select" data-id="${item.id}"><span class="reply-l"></span><span class="reply-author">${escapeHtml(reply.author?.name || person(reply.author_id)?.name || "Member")}</span><span class="reply-body">${escapeHtml(reply.body)}</span>${ownPrivate ? '<span class="reply-label">Private reply</span>' : moderatorPrivate ? '<span class="reply-label">Moderator view</span>' : ""}</button>`;
+        }).join("");
+        const thread = messageRelations.threads.find((entry) => entry.root_message_id === item.id);
+        const threadMarkup = thread ? `<button class="message-thread-link" data-action="thread-open" data-id="${thread.id}">View ${Number(thread.reply_count)||0} more ${(Number(thread.reply_count)||0)===1?"reply":"replies"}${thread.archived ? " · Archived thread" : ""}</button>` : "";
         const timeLabel = new Date(item.created * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-        return `${divider}<article class="message ${grouped ? "grouped" : ""}" data-message="${item.id}">${grouped ? '<span class="avatar-spacer"></span>' : avatar(user)}${grouped ? `<time class="group-timestamp" aria-label="${escapeHtml(timeLabel)}">${escapeHtml(timeLabel)}</time>` : ""}<div class="content">${grouped ? "" : `<span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}${botBadge(user)}<time>${escapeHtml(timeLabel)}</time>`}${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}<button data-action="message-menu" data-id="${item.id}" title="More message options">${icon("more", "sm")}</button></div></article>`;
+        return `${divider}<article class="message ${grouped ? "grouped" : ""}" data-message="${item.id}">${grouped ? '<span class="avatar-spacer"></span>' : avatar(user)}${grouped ? `<time class="group-timestamp" aria-label="${escapeHtml(timeLabel)}">${escapeHtml(timeLabel)}</time>` : ""}<div class="content">${grouped ? "" : `<span class="name" style="${roleTextStyle(role)}">${escapeHtml(user.name)}</span>${roleIcon(role)}${botBadge(user)}<time>${escapeHtml(timeLabel)}</time>`}${item.pinned ? ` <span class="pinned">${icon("pin", "sm")} Pinned</span>` : ""}<p>${escapeHtml(item.body)}</p>${replyMarkup}${threadMarkup}${attachments}${item.edited ? '<span class="edited">(edited)</span>' : ""}<div>${(item.reactions || []).map((reaction) => `<button class="reaction" data-action="reaction" data-id="${item.id}" data-emoji="${escapeHtml(reaction.emoji)}">${escapeHtml(reaction.emoji)} ${reaction.count}</button>`).join("")}</div></div><div class="msgtools"><button data-action="reaction-picker" data-id="${item.id}" title="React">${icon("smile", "sm")}</button><button data-action="reply" data-id="${item.id}" title="Reply">${icon("chat", "sm")}</button>${!thread ? `<button data-action="thread-create" data-id="${item.id}" title="Start thread">${icon("list", "sm")}</button>` : ""}${item.sender === state.user.id ? `<button data-action="edit-message" data-id="${item.id}" title="Edit">${icon("edit", "sm")}</button>` : ""}${cid && can("manage_messages") ? `<button data-action="pin" data-id="${item.id}" title="${item.pinned ? "Unpin" : "Pin"}">${icon("pin", "sm")}</button>` : ""}${item.sender === state.user.id || (cid && can("manage_messages")) ? `<button data-action="delete-message" data-id="${item.id}" title="Delete">${icon("trash", "sm")}</button>` : ""}<button data-action="message-menu" data-id="${item.id}" title="More message options">${icon("more", "sm")}</button></div></article>`;
       })
       .join(
         "",
@@ -949,6 +986,70 @@
           membersVisible = !membersVisible;
           render();
         }
+        return;
+      }
+      if (action === "right-tab") {
+        rightPanelTab = button.dataset.tab === "threads" ? "threads" : "members";
+        activeThread = null;
+        threadData = null;
+        render();
+        return;
+      }
+      if (action === "reply" || action === "reply-select") {
+        replyTarget = id;
+        privateReply = false;
+        render();
+        await loadMessages();
+        $("#message")?.focus();
+        return;
+      }
+      if (action === "reply-private") {
+        privateReply = !privateReply;
+        render();
+        $("#message")?.focus();
+        return;
+      }
+      if (action === "reply-mention") {
+        replyMention = !replyMention;
+        render();
+        $("#message")?.focus();
+        return;
+      }
+      if (action === "reply-cancel") {
+        replyTarget = null;
+        privateReply = false;
+        render();
+        await loadMessages();
+        return;
+      }
+      if (action === "thread-create") {
+        const created = await relationApi("thread/create", { channel: cid, message: id });
+        await loadMessages();
+        activeThread = created.id;
+        threadData = await relationApi("thread/open", { channel: cid, thread: created.id });
+        rightPanelTab = "threads";
+        render();
+        return;
+      }
+      if (action === "thread-open") {
+        activeThread = id;
+        threadData = await relationApi("thread/open", { channel: cid, thread: id });
+        rightPanelTab = "threads";
+        render();
+        if (innerWidth < 1100) show("Thread", memberList().replace(/^<aside[^>]*>|<\/aside>$/g, ""));
+        return;
+      }
+      if (action === "threads-back") {
+        activeThread = null;
+        threadData = null;
+        render();
+        return;
+      }
+      if (action === "thread-archive") {
+        await relationApi("thread/archive", { channel: cid, thread: activeThread, archived: button.dataset.archived === "true" });
+        threadData = await relationApi("thread/open", { channel: cid, thread: activeThread });
+        await loadMessages();
+        render();
         return;
       }
       if (action === "quick-switch") {
@@ -1651,6 +1752,18 @@
       const button = event.target.querySelector(".send");
       button.disabled = true;
       try {
+        if (replyTarget) {
+          if (pendingAttachments.length) throw Error("Remove attachments before sending a reply.");
+          const parent = messages.find((item) => item.id === replyTarget);
+          const mention = replyMention && parent ? `@${person(parent.sender)?.username || person(parent.sender)?.name || "member"} ` : "";
+          await relationApi("reply/create", { channel: cid, message: replyTarget, body: mention + body, private: privateReply });
+          input.value = "";
+          replyTarget = null;
+          privateReply = false;
+          await loadMessages();
+          render();
+          return;
+        }
         const created = await api("message/send", {
           channel: dm ? null : cid,
           user: dm?.id || null,
@@ -1671,6 +1784,19 @@
       } finally {
         button.disabled = false;
         input.focus();
+      }
+      return;
+    }
+    if (event.target.id === "thread-compose") {
+      event.preventDefault();
+      const body = $("#thread-message")?.value || "";
+      if (!body.trim() || !activeThread) return;
+      try {
+        await relationApi("thread/reply", { channel: cid, thread: activeThread, body });
+        threadData = await relationApi("thread/open", { channel: cid, thread: activeThread });
+        render();
+      } catch (error) {
+        toast(errText(error));
       }
     }
   });

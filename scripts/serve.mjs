@@ -15,6 +15,7 @@ const files = new Map([
   ['/staff-panel.css', ['staff-panel.css', 'text/css; charset=utf-8']],
   ['/staff-mobile.css', ['staff-mobile.css', 'text/css; charset=utf-8']],
   ['/guilded-reference.css', ['guilded-reference.css', 'text/css; charset=utf-8']],
+  ['/message-relations.css', ['message-relations.css', 'text/css; charset=utf-8']],
   ['/settings.css', ['settings.css', 'text/css; charset=utf-8']],
   ['/tokens.css', ['tokens.css', 'text/css; charset=utf-8']],
   ['/guilded.css', ['guilded.css', 'text/css; charset=utf-8']]

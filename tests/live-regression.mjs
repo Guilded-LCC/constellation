@@ -43,10 +43,123 @@ async function rpc(token, name, args = {}) {
   if (!response.ok) throw Error(`${name} failed (${response.status}): ${body?.message || "request rejected"}`);
   return body;
 }
+async function relations(token, action, payload = {}) {
+  return rpc(token, "app_message_relations", { p_action: action, p_payload: payload });
+}
 async function expectDenied(fn, label) {
   let rejected = false;
   try { await fn(); } catch { rejected = true; }
   assert(rejected, `${label} should be rejected`);
+}
+
+if (process.env.RELATIONS_ONLY === "1") {
+  const owner = await magicToken(ownerEmail), member = await magicToken(memberEmail);
+  let serverId = null, browser;
+  const storagePaths = [];
+  const browserErrors = [];
+  try {
+    const server = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Relations QA ${Date.now()}` } });
+    serverId = server.id;
+    const state = await rpc(owner.access_token, "app_state");
+    const channel = state.servers.find((item) => item.id === serverId)?.channels.find((item) => item.type === "TEXT");
+    assert(channel, "test server should have a text channel");
+    const invite = await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: serverId } });
+    await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
+    async function storageUpload(token, label) {
+      const path = `channels/${channel.id}/relations-${label}-${crypto.randomUUID()}.txt`;
+      const response = await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "POST", headers: { apikey: anonKey, Authorization: `Bearer ${token}`, "Content-Type": "text/plain", "x-upsert": "false" }, body: `storage permission ${label}` });
+      if (response.ok) storagePaths.push(path);
+      return response;
+    }
+    assert((await storageUpload(owner.access_token, "owner")).ok, "server owner should be able to upload");
+    const beforeRoles = state.servers.find((item) => item.id === serverId).roles;
+    const baseMember = beforeRoles.find((item) => item.position === 0);
+    const adminRole = { id: crypto.randomUUID(), name: "Administrator QA", color: "#f6c500", color2: "", emoji: "", permissions: ["administrator"], position: Math.max(...beforeRoles.map((item) => item.position)) + 1, icon_url: "", self_assignable: false, mentionable: false, hoist: false, gradient_angle: 90 };
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: [...beforeRoles, adminRole] });
+    await rpc(owner.access_token, "app_api", { p_action: "member/role", p_payload: { server: serverId, user: (await rpc(member.access_token, "app_state")).user.id, role: adminRole.id, enabled: true } });
+    assert((await storageUpload(member.access_token, "administrator")).ok, "Administrator role should be able to upload");
+    await rpc(owner.access_token, "app_api", { p_action: "member/role", p_payload: { server: serverId, user: (await rpc(member.access_token, "app_state")).user.id, role: adminRole.id, enabled: false } });
+    const memberWithoutUpload = beforeRoles.map((role) => role.id === baseMember.id ? { ...role, permissions: (role.permissions || []).filter((permission) => permission !== "upload_media") } : role);
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: memberWithoutUpload });
+    const deniedUpload = await storageUpload(member.access_token, "member-denied");
+    const deniedBody = await deniedUpload.text();
+    assert(!deniedUpload.ok, `member without upload_media should be rejected by Storage (HTTP ${deniedUpload.status}: ${deniedBody})`);
+    assert.match(`${deniedUpload.status} ${deniedBody}`, /403|unauthorized|row.level security|policy/i, "upload denial should come from the Storage policy");
+    const memberWithUpload = memberWithoutUpload.map((role) => role.id === baseMember.id ? { ...role, permissions: [...role.permissions, "upload_media"] } : role);
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: memberWithUpload });
+    assert((await storageUpload(member.access_token, "member-allowed")).ok, "member with upload_media should be able to upload");
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: beforeRoles });
+    console.log("PASS live Storage RLS: owner and Administrator uploads allowed; member upload denied then allowed by permission toggle");
+    const root = await rpc(owner.access_token, "app_api", { p_action: "message/send", p_payload: { channel: channel.id, body: "relations security root" } });
+    const publicReply = await relations(owner.access_token, "reply/create", { channel: channel.id, message: root.id, body: "public reply" });
+    const privateReply = await relations(owner.access_token, "reply/create", { channel: channel.id, message: root.id, body: "owner-only private reply", private: true });
+    const memberView = await relations(member.access_token, "list", { channel: channel.id });
+    assert(memberView.replies.some((item) => item.id === publicReply.id));
+    assert(!memberView.replies.some((item) => item.id === privateReply.id));
+    await expectDenied(() => relations(member.access_token, "reply/create", { channel: channel.id, message: root.id, body: "private attack", private: true }), "member private reply");
+    const baseRole = state.servers.find((item) => item.id === serverId).roles.find((item) => item.position === 0);
+    const enabledRoles = state.servers.find((item) => item.id === serverId).roles.map((role) => role.id === baseRole.id ? { ...role, permissions: [...new Set([...(role.permissions || []), "private_replies"])] } : role);
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: enabledRoles });
+    const permittedPrivate = await relations(member.access_token, "reply/create", { channel: channel.id, message: root.id, body: "private reply with permission", private: true });
+    assert((await relations(member.access_token, "list", { channel: channel.id })).replies.some((item) => item.id === permittedPrivate.id), "authorized member should see their own private reply");
+    const originalRoles = state.servers.find((item) => item.id === serverId).roles;
+    await rpc(owner.access_token, "app_roles_save", { p_server: serverId, p_roles: originalRoles });
+    await expectDenied(() => relations(member.access_token, "reply/create", { channel: channel.id, message: root.id, body: "private after revoke", private: true }), "private reply after permission revoke");
+    const thread = await relations(owner.access_token, "thread/create", { channel: channel.id, message: root.id });
+    await relations(member.access_token, "thread/reply", { channel: channel.id, thread: thread.id, body: "member thread reply" });
+    assert.equal((await relations(owner.access_token, "thread/open", { channel: channel.id, thread: thread.id })).replies.length, 1);
+    await expectDenied(() => relations(member.access_token, "thread/archive", { channel: channel.id, thread: thread.id, archived: true }), "member thread archive");
+    await relations(owner.access_token, "thread/archive", { channel: channel.id, thread: thread.id, archived: true });
+    await expectDenied(() => relations(member.access_token, "thread/reply", { channel: channel.id, thread: thread.id, body: "archived thread attack" }), "write to archived thread");
+    for (const table of ["message_replies", "message_threads", "thread_replies"]) {
+      const response = await fetch(`${supabaseUrl}/rest/v1/${table}?select=*`, { headers: { apikey: anonKey, Authorization: `Bearer ${owner.access_token}` } });
+      assert(!response.ok, `${table} direct access should be denied`);
+    }
+
+    browser = await chromium.launch({ headless: true, args: ["--no-zygote", "--disable-gpu", "--disable-background-networking"] });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    page.on("console", (message) => { if (message.type() === "error") browserErrors.push(message.text()); });
+    page.on("pageerror", (error) => browserErrors.push(error.message));
+    await page.goto(appUrl, { waitUntil: "domcontentloaded" });
+    await page.evaluate(async (session) => {
+      const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+      const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+      if (result.error) throw result.error;
+    }, owner);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".layout").waitFor();
+    await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(`.channel[data-id="${channel.id}"]`).click();
+    const row = page.locator(`.message[data-message="${root.id}"]`);
+    await row.locator(".message-reply-preview").filter({ hasText: "public reply" }).waitFor();
+    await row.locator(".message-reply-preview").filter({ hasText: "owner-only private reply" }).waitFor();
+    await row.locator('[data-action="reply"]').click({ force: true });
+    await page.locator("#message").fill("browser reply persistence");
+    await page.locator("#compose").evaluate((form) => form.requestSubmit());
+    await page.locator(".message-reply-preview").filter({ hasText: "browser reply persistence" }).waitFor();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".layout").waitFor();
+    await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+    await page.locator(`.channel[data-id="${channel.id}"]`).click();
+    await page.locator(`.message[data-message="${root.id}"] .message-thread-link`).waitFor();
+    await page.locator(`.message[data-message="${root.id}"] .message-thread-link`).click();
+    await page.locator(".thread-panel").filter({ hasText: "member thread reply" }).waitFor();
+    await page.screenshot({ path: "verification/live-message-relations-1280.png" });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator(`.message[data-message="${root.id}"] .message-thread-link`).click();
+    await page.locator("#modal[open]").filter({ hasText: "member thread reply" }).waitFor();
+    const widths = await page.evaluate(() => ({ viewport: innerWidth, content: document.documentElement.scrollWidth }));
+    assert.equal(widths.content, widths.viewport, "mobile page should not overflow horizontally");
+    await page.screenshot({ path: "verification/live-message-relations-390.png" });
+    assert.equal(browserErrors.length, 0, browserErrors.join(" | "));
+    console.log("PASS live relation security: private replies hidden and rejected; thread moderation enforced; tables isolated");
+    console.log("PASS live browser: public/private previews, reply composer, thread detail, hard-refresh persistence, 1280/390, empty console");
+  } finally {
+    if (browser) await browser.close();
+    for (const path of storagePaths) await fetch(`${supabaseUrl}/storage/v1/object/attachments/${path}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }).catch(() => {});
+    if (serverId) await rpc(owner.access_token, "app_api", { p_action: "server/delete", p_payload: { server: serverId } }).catch(() => {});
+  }
+  process.exit(0);
 }
 
 const owner = await magicToken(ownerEmail);
@@ -125,6 +238,44 @@ try {
   assert(message.reactions.some((item) => item.emoji === "👍"));
   await page.reload({ waitUntil: "networkidle" });
   await page.locator(".layout").waitFor();
+
+  // Durable replies and threads use the production UI and SECURITY DEFINER RPC.
+  await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+  await page.locator(`.channel[data-id="${textChannel}"]`).click();
+  const messageRow = page.locator(`.message[data-message="${sent.id}"]`);
+  await messageRow.locator('[data-action="reply"]').click({ force: true });
+  await page.locator("#message").fill("persistent reply from owner");
+  await page.locator("#compose").evaluate((form) => form.requestSubmit());
+  await page.locator(".message-reply-preview").filter({ hasText: "persistent reply from owner" }).waitFor();
+  assert.equal((await relations(owner.access_token, "list", { channel: textChannel })).replies.length, 1);
+  await messageRow.locator('[data-action="thread-create"]').click({ force: true });
+  await page.locator(".thread-panel").waitFor();
+  await page.locator("#thread-message").fill("persistent thread reply");
+  await page.locator("#thread-compose").evaluate((form) => form.requestSubmit());
+  await page.locator(".thread-replies").filter({ hasText: "persistent thread reply" }).waitFor();
+  const threadData = await relations(owner.access_token, "list", { channel: textChannel });
+  const thread = threadData.threads.find((item) => item.root_message_id === sent.id);
+  assert(thread, "thread must be stored in Supabase");
+  const privateReply = await relations(owner.access_token, "reply/create", { channel: textChannel, message: sent.id, body: "owner-only private reply", private: true });
+  const memberVisible = await relations(member.access_token, "list", { channel: textChannel });
+  assert(!memberVisible.replies.some((reply) => reply.id === privateReply.id), "non-participant must not read a private reply");
+  await expectDenied(() => relations(member.access_token, "reply/create", { channel: textChannel, message: sent.id, body: "unauthorized private reply", private: true }), "member private reply without permission");
+  await expectDenied(() => relations(member.access_token, "thread/archive", { channel: textChannel, thread: thread.id, archived: true }), "non-moderator thread archive");
+  await relations(owner.access_token, "thread/archive", { channel: textChannel, thread: thread.id, archived: true });
+  await expectDenied(() => relations(member.access_token, "thread/reply", { channel: textChannel, thread: thread.id, body: "reply after archive" }), "reply to archived thread");
+  for (const table of ["message_replies", "message_threads", "thread_replies"]) {
+    const response = await fetch(`${supabaseUrl}/rest/v1/${table}?select=*`, { headers: { apikey: anonKey, Authorization: `Bearer ${owner.access_token}` } });
+    assert(!response.ok, `${table} direct access must be denied`);
+  }
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator(".layout").waitFor();
+  await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
+  await page.locator(`.channel[data-id="${textChannel}"]`).click();
+  await page.locator(".message-reply-preview").filter({ hasText: "persistent reply from owner" }).waitFor();
+  await page.locator(`.message[data-message="${sent.id}"] .message-thread-link`).click();
+  await page.locator(".thread-replies").filter({ hasText: "persistent thread reply" }).waitFor();
+  passed.push("public/private replies, thread reply/archive, direct table denial and hard-refresh persistence");
+
   await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: sent.id } });
   chat = await rpc(owner.access_token, "app_messages", { p_channel: textChannel, p_user: null });
   assert(!chat.some((item) => item.id === sent.id));

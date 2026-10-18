@@ -81,6 +81,7 @@ window.createSettingsUI = function ({
       ["send_messages", "Send messages", "Post messages in chat channels"],
       ["add_reactions", "Add reactions", "React to messages"],
       ["manage_messages", "Manage messages", "Delete and pin messages"],
+      ["private_replies", "Private replies", "Send replies visible only to participants and moderators"],
       [
         "manage_channels",
         "Manage channels",
@@ -256,7 +257,7 @@ window.createSettingsUI = function ({
           )
           .join("") || '<p class="s-muted">No banned members.</p>'
       );
-    return `<p class="s-muted">Incoming webhook endpoint deployment is pending. Hooks can be configured now; posting through the endpoint is unavailable.</p><div class="s-inline"><input id="s-hook-name" placeholder="Webhook name" maxlength="50"><select id="s-hook-channel">${(current()?.channels || []).map((c) => `<option value="${c.id}">#${e(c.name)}</option>`).join("")}</select><button class="s-outline" data-s-action="create-hook">Create webhook</button></div>${hookURL ? `<p class="s-hint">Copy this secret URL now. It is shown once.</p><input readonly aria-label="Webhook URL" value="${e(hookURL)}">` : ""}${(data.webhooks?.hooks || []).map((h) => `<div class="s-record"><strong>${e(h.name)}</strong><span>#${e(current()?.channels?.find((c) => c.id === h.channel_id)?.name || "channel")}</span><button class="danger" data-s-action="delete-hook" data-id="${h.id}">Delete</button></div>`).join("")}`;
+    return `<p class="s-muted">Incoming webhook endpoint is live. Secret URLs are shown once; keep them private.</p><div class="s-inline"><input id="s-hook-name" placeholder="Webhook name" maxlength="50"><select id="s-hook-channel">${(current()?.channels || []).map((c) => `<option value="${c.id}">#${e(c.name)}</option>`).join("")}</select><button class="s-outline" data-s-action="create-hook">Create webhook</button></div>${hookURL ? `<p class="s-hint">Copy this secret URL now. It is shown once.</p><input readonly aria-label="Webhook URL" value="${e(hookURL)}">` : ""}${(data.webhooks?.hooks || []).map((h) => `<div class="s-record"><strong>${e(h.name)}</strong><span>#${e(current()?.channels?.find((c) => c.id === h.channel_id)?.name || "channel")}</span><button class="danger" data-s-action="delete-hook" data-id="${h.id}">Delete</button></div>`).join("")}`;
   }
   async function load() {
     data = await rpc("app_settings", { p_server: openServer });
