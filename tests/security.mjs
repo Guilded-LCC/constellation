@@ -133,6 +133,9 @@ try {
 
   const report = await rpc(member.access_token, "staff_action", { p_action: "report/create", p_payload: { target_user: ownerState.user.id, server_id: serverId, reason: "QA security report cleanup" } });
   reportId = report.id;
+  for (const [label, token] of [["normal user", member.access_token], ["server owner", owner.access_token]]) {
+    await rejected(() => rpc(token, "staff_delete_report", { p_report_id: reportId, p_reason: "unauthorized test" }), `${label} staff_delete_report`);
+  }
   const serverBefore = await rpc(admin.access_token, "staff_action", { p_action: "server/get", p_payload: { server_id: serverId } });
   const auditActions = [];
   const invoke = async (action, payload = {}) => { const result = await rpc(admin.access_token, "staff_action", { p_action: action, p_payload: payload }); auditActions.push(action); return result; };
@@ -161,10 +164,15 @@ try {
   assert.match(suspendedUploadReason, /row.level security|policy|unauthorized/i, "suspended member upload must be denied by Storage RLS");
   await invoke("user/suspend", { user_id: memberState.user.id, enabled: false, reason: "temporary security test cleanup" });
   await invoke("dashboard");
+  const deletion = await rpc(admin.access_token, "staff_delete_report", { p_report_id: reportId, p_reason: "QA security test cleanup" });
+  assert.equal(deletion.deleted, true, "platform admin report deletion should succeed");
+  auditActions.push("report/delete");
+  reportId = null;
+  await invoke("audit");
   const audit = await invoke("audit");
   const audited = new Set(audit.filter((row) => row.actor === adminState.user.id).map((row) => row.action));
-  for (const action of auditActions) assert(audited.has(action), `staff_action(${action}) must write a staff_audit row`);
-  console.log(`PASS admin staff RPCs audit all ${auditActions.length} tested action types`);
+  for (const action of auditActions) assert(audited.has(action), `admin RPC ${action} must write a staff_audit row`);
+  console.log(`PASS admin staff RPCs and report-delete action audit all ${auditActions.length} tested action types`);
   console.log("PASS suspension blocks message insert and attachment upload at Supabase");
 } finally {
   const cleanupErrors = [];
@@ -192,14 +200,12 @@ try {
   }));
 
   // Delete references to the disposable server before deleting that server.
-  if (reportId) await cleanupStep("delete temporary security report", () => fetch(`${url}/rest/v1/staff_reports?id=eq.${reportId}`, {
-    method: "DELETE", headers: { apikey: service, Authorization: `Bearer ${service}` },
+  if (reportId) await cleanupStep("delete temporary security report", () => rpc(admin.access_token, "staff_delete_report", { p_report_id: reportId, p_reason: "QA security test cleanup" }));
+  await cleanupStep("remove temporary badge assignment", () => rpc(admin.access_token, "staff_action", {
+    p_action: "user/badge", p_payload: { user_id: memberState.user.id, badge: badgeId, enabled: false },
   }));
-  await cleanupStep("remove temporary badge assignments", () => fetch(`${url}/rest/v1/profile_badges?badge=eq.${badgeId}`, {
-    method: "DELETE", headers: { apikey: service, Authorization: `Bearer ${service}` },
-  }));
-  await cleanupStep("remove temporary badge", () => fetch(`${url}/rest/v1/staff_badges?id=eq.${badgeId}`, {
-    method: "DELETE", headers: { apikey: service, Authorization: `Bearer ${service}` },
+  await cleanupStep("remove temporary badge", () => rpc(admin.access_token, "staff_action", {
+    p_action: "badge/delete", p_payload: { id: badgeId },
   }));
   for (const path of uploadedPaths) await cleanupStep("remove uploaded security fixture", () => fetch(`${url}/storage/v1/object/attachments/${path}`, {
     method: "DELETE", headers: { apikey: service, Authorization: `Bearer ${service}` },
