@@ -29,7 +29,8 @@ html,body{font:16px/1.45 Inter,"Segoe UI",Arial,sans-serif}
 .channel-wrap:hover .channel-actions,.channel-wrap:focus-within .channel-actions{opacity:1}
 .channel-actions .icon-button{width:25px;height:25px;color:#c4c6cf}
 .cat-head{margin:10px 2px 2px}
-.cat-head .cat-toggle{font-size:12px}
+.cat-head .cat-toggle{font-size:14px;font-weight:600;text-transform:none}
+.nav-heading{font-size:16px;font-weight:650;letter-spacing:0;text-transform:none;color:#c5c7ce}
 .profilebar{position:relative;min-height:68px;padding:8px 8px;background:#1e2025;border-top:1px solid #343740}
 .profilebar .avatar{width:38px;height:38px;border-radius:50%}
 .profilebar .who{flex:1}
