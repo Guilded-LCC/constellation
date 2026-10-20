@@ -5,9 +5,8 @@ returns jsonb language plpgsql security definer set search_path=public as $$
 begin
   if not public.is_platform_staff() then raise exception 'Not authorized'; end if;
   return coalesce(
-    (select jsonb_agg(to_jsonb(u) || jsonb_build_object('user', public.app_public_profile(u.user_id))) 
-     from public.user_uploads u 
-     order by u.created_at desc), 
+    (select jsonb_agg(to_jsonb(u) || jsonb_build_object('user', public.app_public_profile(u.user_id)) order by u.created_at desc) 
+     from public.user_uploads u), 
     '[]'::jsonb
   );
 end $$;
