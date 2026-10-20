@@ -75,7 +75,7 @@
   }
   function uploads() {
     const rows = data || [];
-    return `<div class="staff-records">${rows.map((item) => record(item.user?.name || item.user?.username, `${esc(item.file_name)} · ${Math.round(item.byte_size/1024)}KB · ${new Date(item.created_at).toLocaleDateString()}`, "upload-delete", item.id, "Delete")).join("") || `<p class="staff-empty">No user uploads found.</p>`}</div>`;
+    return `${rows.length ? rows.map((r) => `<article class="staff-report"><div class="staff-report-title"><strong>${esc(r.file_name)}</strong><span class="staff-tag">${Math.round(r.byte_size/1024)}KB</span></div><p>Uploaded by ${esc(r.user?.name || r.user?.username)} · ${new Date(r.created_at).toLocaleString()}</p><div class="staff-inline">${button("upload-approve", "Approve", "subtle")}${button("upload-delete", "Delete", "danger")}</div></article>`).join("") : `<p class="staff-empty">No user uploads found.</p>`}`;
   }
 
   function audit() {
@@ -128,6 +128,7 @@
       if (action === "server-flags") await call("server/flags", { server_id: selectedServer.server.id, verified: root().querySelector("#staff-verified").checked, partner: root().querySelector("#staff-partner").checked });
       if (action === "server-suspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: true, reason: root().querySelector("#staff-server-reason").value });
       if (action === "server-unsuspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: false, reason: "Server suspension lifted by staff" });
+      if (action === "upload-approve") await rpc("staff_approve_upload", { p_upload_id: id });
       if (action === "upload-delete") await rpc("staff_delete_upload", { p_upload_id: id });
       if (action === "reports-load") { status = root().querySelector("#staff-report-status").value; }
       if (action === "report-save") await call("report/update", { report_id: id, status: root().querySelector(`#report-status-${CSS.escape(id)}`).value, internal_notes: root().querySelector(`#report-note-${CSS.escape(id)}`).value, assignee: user.id });
