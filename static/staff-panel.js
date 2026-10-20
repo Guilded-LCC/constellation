@@ -6,6 +6,7 @@
     ["users", "Users"],
     ["servers", "Servers"],
     ["reports", "Reports"],
+    ["uploads", "Uploads"],
     ["badges", "Badges"],
     ["staff", "Staff"],
     ["audit", "Audit log"],
@@ -72,6 +73,11 @@
     const rows = data || [];
     return `${searchBox("Find a user to add to platform staff", "staff-search")}${staffSearchResults.map((item) => record(item.name || item.username, item.email, "staff-add", item.id, "Add staff")).join("")}<div class="staff-records">${rows.map((item) => `<article class="staff-record"><div><strong>${esc(item.profile?.name || item.profile?.username)}</strong><small>${esc(item.user_id)} · added ${new Date(item.added_at).toLocaleDateString()}</small></div><div class="staff-inline"><select data-staff-level="${esc(item.user_id)}"><option value="staff" ${item.level === "staff" ? "selected" : ""}>Staff</option><option value="admin" ${item.level === "admin" ? "selected" : ""}>Admin</option></select><button class="staff-button" data-staff-action="staff-level-save" data-id="${esc(item.user_id)}">Save</button><button class="staff-button danger" data-staff-action="staff-remove" data-id="${esc(item.user_id)}">Remove</button></div></article>`).join("") || `<p class="staff-empty">No platform staff configured.</p>`}</div>`;
   }
+  function uploads() {
+    const rows = data || [];
+    return `<div class="staff-records">${rows.map((item) => record(item.user?.name || item.user?.username, `${esc(item.file_name)} · ${Math.round(item.byte_size/1024)}KB · ${new Date(item.created_at).toLocaleDateString()}`, "upload-delete", item.id, "Delete")).join("") || `<p class="staff-empty">No user uploads found.</p>`}</div>`;
+  }
+
   function audit() {
     const rows = data || [];
     return `${searchBox("Filter by action", "audit")}${rows.map((item) => `<article class="staff-audit-row"><strong>${esc(item.action)}</strong><span>${esc(item.target_type)} ${esc(item.target_id)}</span><small>${esc(item.reason || "No reason supplied")} · ${new Date(item.created_at).toLocaleString()}</small></article>`).join("") || `<p class="staff-empty">No matching audit records.</p>`}`;
@@ -84,6 +90,7 @@
       if (page === "users") { data = await call("users/search", { query }); badgeOptions = await call("badges/list"); }
       if (page === "servers") data = await call("servers/search", { query });
       if (page === "reports") data = await call("reports", { status: status === "all" ? null : status });
+      if (page === "uploads") data = await rpc("staff_list_uploads");
       if (page === "badges") data = await call("badges/list");
       if (page === "staff") data = await call("staff/list");
       if (page === "audit") data = await call("audit", { query });
@@ -97,7 +104,7 @@
     render();
   }
   function render(note = "") {
-    const body = page === "dashboard" ? dashboard() : page === "users" ? users() : page === "servers" ? servers() : page === "reports" ? reports() : page === "badges" ? badges() : page === "staff" ? staff() : audit();
+    const body = page === "dashboard" ? dashboard() : page === "users" ? users() : page === "servers" ? servers() : page === "reports" ? reports() : page === "uploads" ? uploads() : page === "badges" ? badges() : page === "staff" ? staff() : audit();
     shell(body, note || loadError);
   }
   function fail(error) {
@@ -121,6 +128,7 @@
       if (action === "server-flags") await call("server/flags", { server_id: selectedServer.server.id, verified: root().querySelector("#staff-verified").checked, partner: root().querySelector("#staff-partner").checked });
       if (action === "server-suspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: true, reason: root().querySelector("#staff-server-reason").value });
       if (action === "server-unsuspend") await call("server/suspend", { server_id: selectedServer.server.id, enabled: false, reason: "Server suspension lifted by staff" });
+      if (action === "upload-delete") await rpc("staff_delete_upload", { p_upload_id: id });
       if (action === "reports-load") { status = root().querySelector("#staff-report-status").value; }
       if (action === "report-save") await call("report/update", { report_id: id, status: root().querySelector(`#report-status-${CSS.escape(id)}`).value, internal_notes: root().querySelector(`#report-note-${CSS.escape(id)}`).value, assignee: user.id });
       if (action === "badge-delete") await call("badge/delete", { id });
