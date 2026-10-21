@@ -98,7 +98,7 @@
   function shell(body, heading, crumbs = "") {
     const current = NAV.find(([key]) => key === page)?.[1] || "Staff";
     root().innerHTML = `<main class="staff-shell"><header class="staff-header">
-      <a class="staff-brand" href="/" title="Back to Constellation"><span class="staff-symbol">G</span><span class="staff-brandtext"><strong>Constellation Control</strong><small>Trust &amp; safety workspace</small></span></a>
+      <a class="staff-brand" href="/" title="Back to Constellation"><span class="staff-symbol">C</span><span class="staff-brandtext"><strong>Constellation Control</strong><small>Trust &amp; safety workspace</small></span></a>
       <form class="staff-global-search" data-staff-search="global" role="search"><span class="staff-search-ico">${icon("search", 17)}</span><input name="query" value="${esc(users.query)}" placeholder="Search email, username or account ID" autocomplete="off" aria-label="Search accounts"><kbd>Enter</kbd></form>
       <div class="staff-identity"><span class="staff-identity-name">${esc(user?.name || user?.username || "Staff")}</span><span class="staff-level">${user?.is_platform_admin ? "Platform admin" : "Staff"}</span><a class="staff-return" href="/">Exit</a></div>
     </header><div class="staff-accent"></div>

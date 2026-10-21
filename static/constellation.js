@@ -605,7 +605,7 @@
         return;
       }
       if (invitePreviewCode === inviteCode && invitePreviewError) {
-        $("#app").innerHTML = `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Constellation</div><section class="authcard"><h1>Invite unavailable</h1><p>${escapeHtml(invitePreviewError)}</p><a href="/">Return home</a></section></div></div>`;
+        $("#app").innerHTML = `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">C</span>Constellation</div><section class="authcard"><h1>Invite unavailable</h1><p>${escapeHtml(invitePreviewError)}</p><a href="/">Return home</a></section></div></div>`;
         return;
       }
       $("#app").innerHTML = '<div class="auth"><div class="auth-shell"><section class="authcard"><h1>Loading invite</h1><p>Please wait while we check this invitation.</p></section></div></div>';
@@ -630,7 +630,7 @@
       return;
     }
     $("#app").innerHTML =
-      `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Constellation</div><form class="authcard" id="auth-form"><h1>${registration ? "Create an account" : "Welcome back"}</h1><p>${registration ? "Choose your name and join the conversation." : "Sign in to your account to continue."}</p>${field("email", "Email address", "", "email")}${registration ? field("username", "Username") : ""}${registration ? field("displayname", "Display name") : ""}${field("password", registration ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary" type="submit">${registration ? "Create account" : "Sign in"}</button><div class="error" id="autherror"></div><div class="switch">${registration ? "Already have an account?" : "New to Constellation?"} <button type="button" data-action="auth-switch">${registration ? "Sign in" : "Create an account"}</button></div></form></div></div>`;
+      `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">C</span>Constellation</div><form class="authcard" id="auth-form"><h1>${registration ? "Create an account" : "Welcome back"}</h1><p>${registration ? "Choose your name and join the conversation." : "Sign in to your account to continue."}</p>${field("email", "Email address", "", "email")}${registration ? field("username", "Username") : ""}${registration ? field("displayname", "Display name") : ""}${field("password", registration ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary" type="submit">${registration ? "Create account" : "Sign in"}</button><div class="error" id="autherror"></div><div class="switch">${registration ? "Already have an account?" : "New to Constellation?"} <button type="button" data-action="auth-switch">${registration ? "Sign in" : "Create an account"}</button></div></form></div></div>`;
     $("#auth-form").autocomplete = "off";
     $("#email").autocomplete = "off";
     $("#email").required = true;
@@ -926,7 +926,7 @@
   function render() {
     if (/^\/admin\/?$/.test(location.pathname)) {
       if (!state?.user?.is_platform_staff) {
-        $("#app").innerHTML = '<main class="not-found"><span class="mark">G</span><h1>This page does not exist</h1><p>Check the address and try again.</p><a href="/">Back to Constellation</a></main>';
+        $("#app").innerHTML = '<main class="not-found"><span class="mark">C</span><h1>This page does not exist</h1><p>Check the address and try again.</p><a href="/">Back to Constellation</a></main>';
         return;
       }
       window.renderBadgeIcon = (badge) => badgeIcon(badge);
@@ -2261,7 +2261,7 @@
       if (action === "submit-server") {
         const result = await api("server/create", {
           name: value("new-server-name"),
-          icon: "G",
+          icon: "C",
         });
         sid = result.id;
         cid = null;
@@ -2534,7 +2534,7 @@
       if (action === "save-profile") {
         const profileFields = {
             name: value("profile-name"),
-            avatar: value("profile-avatar") || state.user.avatar || "G",
+            avatar: value("profile-avatar") || state.user.avatar || "C",
             bio: value("profile-bio"),
             status: value("profile-status"),
           },
