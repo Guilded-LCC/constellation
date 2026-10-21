@@ -6,9 +6,9 @@ import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 const output = fileURLToPath(new URL("../verification/", import.meta.url));
 await fs.mkdir(output, { recursive: true });
-const url = "https://hyongvpfhikiibgdlkgw.supabase.co",
+const url = process.env.SUPABASE_URL,
   key = process.env.CONSTELLATION_ADMIN_KEY,
-  pub = "sb_publishable_gR52FK02nJJRJO-GYqIvcg_1T9GhPhn";
+  pub = process.env.SUPABASE_PUBLISHABLE_KEY;
 const report = {
   phase: "A",
   started: new Date().toISOString(),
@@ -102,7 +102,7 @@ try {
       JSON.stringify(fixture, null, 2),
     );
   }
-  const existingToken = await token("admin@guilded.info"),
+  const existingToken = await token("admin@example.com"),
     freshToken = await token(fixture.email);
   if (!fixture.guest) {
     const email = `phase-guest-${Date.now()}@example.invalid`,
@@ -139,7 +139,7 @@ try {
       fixture.user,
     ]);
   const existingId = (
-    await db.query("select id from auth.users where email='admin@guilded.info'")
+    await db.query("select id from auth.users where email='admin@example.com'")
   ).rows[0].id;
   if (!fixture.server) {
     const s = await call(existingToken, "app_api", {
@@ -312,7 +312,7 @@ try {
     .toBuffer();
   browser = await chromium.launch({ headless: true });
   for (const account of [
-    { name: "existing", email: "admin@guilded.info", server: fixture.server },
+    { name: "existing", email: "admin@example.com", server: fixture.server },
     {
       name: "fresh",
       email: fixture.email,

@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "check": "node --check static/guilded.js && node --check static/settings-ui.js && node --check static/staff-panel.js && node --check static/config.js && node --check scripts/serve.mjs",
+    "check": "node --check static/constellation.js && node --check static/settings-ui.js && node --check static/staff-panel.js && node --check static/config.js && node --check scripts/serve.mjs",
     "verify:settings": "node scripts/verify-phase-a.mjs",
     "verify:comparisons": "node scripts/compare-phase-a.mjs",
     "test:e2e": "node tests/e2e.mjs",

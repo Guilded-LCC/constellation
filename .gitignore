@@ -39,3 +39,4 @@ bin-release/
 .openai/
 supabase/.temp/
 __pycache__/
+!.env.example

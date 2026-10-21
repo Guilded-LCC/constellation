@@ -279,7 +279,7 @@
       ? badge
       : badge?.name || badge?.id || "Badge";
   }
-  // Guilded badge artwork, drawn inline so it never depends on an external
+  // Constellation badge artwork, drawn inline so it never depends on an external
   // host, a blocked image or a network round-trip. Each badge gets its own
   // accent colour and symbol on a shared dark seal.
   const BADGE_GLYPHS = (() => {
@@ -370,10 +370,10 @@
     if (!usable) return fallback;
     return `<span class="badge-icon-stack">${fallback}<img src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async" data-badge-art></span>`;
   }
-  // The official Guilded account carries this exact pill wherever its name shows.
+  // The official Constellation account carries this exact pill wherever its name shows.
   function officialTag(user) {
     return user?.is_official === true
-      ? '<span class="official-tag" title="Official Guilded account"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m2.3 6.2 2.3 2.2 4.7-4.9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>OFFICIAL</span>'
+      ? '<span class="official-tag" title="Official Constellation account"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m2.3 6.2 2.3 2.2 4.7-4.9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>OFFICIAL</span>'
       : "";
   }
   function userHandle(user) {
@@ -533,7 +533,7 @@
     if (inviteAuthMode !== "preview") {
       const signingUp = registration,
         usernameSuggestion = inviteDisplayName.toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 32);
-      $("#app").innerHTML = `<div class="auth invite-auth"><main class="invite-landing"><section class="invite-preview-shell"><section class="invite-preview-copy invite-account-step"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><h1 class="invite-auth-heading">${signingUp ? "Create your account" : "Log in to continue"}</h1><p class="invite-auth-copy">Use email to join this community. Your invite will be applied after sign-in.</p><form id="auth-form" class="invite-auth-form">${field("email", "Email address", "", "email")}${signingUp ? `${field("username", "Username", usernameSuggestion)}${field("displayname", "Display name", inviteDisplayName)}` : ""}${field("password", signingUp ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary invite-continue" type="submit">${signingUp ? "Create account" : "Log in"}</button><div class="error" id="autherror">${escapeHtml(invitePreviewError)}</div><div class="switch">${signingUp ? "Already have an account?" : "New to Guilded?"} <button type="button" data-action="auth-switch">${signingUp ? "Log in" : "Create an account"}</button></div></form><button class="invite-cancel" data-action="invite-back">Back to invite</button></section>${inviteArt(invite)}</section></main></div>`;
+      $("#app").innerHTML = `<div class="auth invite-auth"><main class="invite-landing"><section class="invite-preview-shell"><section class="invite-preview-copy invite-account-step"><div class="invite-inviter-avatar">${inviterAvatar}</div><p class="invite-kicker">${escapeHtml(invite.inviter_name || "A member")} invited you to join</p><h2>${escapeHtml(invite.name)}</h2><p class="invite-count">${Number(invite.member_count) || 0} ${(Number(invite.member_count) || 0) === 1 ? "member" : "members"}</p><h1 class="invite-auth-heading">${signingUp ? "Create your account" : "Log in to continue"}</h1><p class="invite-auth-copy">Use email to join this community. Your invite will be applied after sign-in.</p><form id="auth-form" class="invite-auth-form">${field("email", "Email address", "", "email")}${signingUp ? `${field("username", "Username", usernameSuggestion)}${field("displayname", "Display name", inviteDisplayName)}` : ""}${field("password", signingUp ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary invite-continue" type="submit">${signingUp ? "Create account" : "Log in"}</button><div class="error" id="autherror">${escapeHtml(invitePreviewError)}</div><div class="switch">${signingUp ? "Already have an account?" : "New to Constellation?"} <button type="button" data-action="auth-switch">${signingUp ? "Log in" : "Create an account"}</button></div></form><button class="invite-cancel" data-action="invite-back">Back to invite</button></section>${inviteArt(invite)}</section></main></div>`;
       $("#auth-form").autocomplete = "off";
       $("#email").autocomplete = "off";
       $("#email").required = true;
@@ -605,7 +605,7 @@
         return;
       }
       if (invitePreviewCode === inviteCode && invitePreviewError) {
-        $("#app").innerHTML = `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Guilded</div><section class="authcard"><h1>Invite unavailable</h1><p>${escapeHtml(invitePreviewError)}</p><a href="/">Return home</a></section></div></div>`;
+        $("#app").innerHTML = `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Constellation</div><section class="authcard"><h1>Invite unavailable</h1><p>${escapeHtml(invitePreviewError)}</p><a href="/">Return home</a></section></div></div>`;
         return;
       }
       $("#app").innerHTML = '<div class="auth"><div class="auth-shell"><section class="authcard"><h1>Loading invite</h1><p>Please wait while we check this invitation.</p></section></div></div>';
@@ -630,7 +630,7 @@
       return;
     }
     $("#app").innerHTML =
-      `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Guilded</div><form class="authcard" id="auth-form"><h1>${registration ? "Create an account" : "Welcome back"}</h1><p>${registration ? "Choose your name and join the conversation." : "Sign in to your account to continue."}</p>${field("email", "Email address", "", "email")}${registration ? field("username", "Username") : ""}${registration ? field("displayname", "Display name") : ""}${field("password", registration ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary" type="submit">${registration ? "Create account" : "Sign in"}</button><div class="error" id="autherror"></div><div class="switch">${registration ? "Already have an account?" : "New to Guilded?"} <button type="button" data-action="auth-switch">${registration ? "Sign in" : "Create an account"}</button></div></form></div></div>`;
+      `<div class="auth"><div class="auth-shell"><div class="auth-brand"><span class="mark">G</span>Constellation</div><form class="authcard" id="auth-form"><h1>${registration ? "Create an account" : "Welcome back"}</h1><p>${registration ? "Choose your name and join the conversation." : "Sign in to your account to continue."}</p>${field("email", "Email address", "", "email")}${registration ? field("username", "Username") : ""}${registration ? field("displayname", "Display name") : ""}${field("password", registration ? "Password · at least 10 characters" : "Password", "", "password")}<button class="primary" type="submit">${registration ? "Create account" : "Sign in"}</button><div class="error" id="autherror"></div><div class="switch">${registration ? "Already have an account?" : "New to Constellation?"} <button type="button" data-action="auth-switch">${registration ? "Sign in" : "Create an account"}</button></div></form></div></div>`;
     $("#auth-form").autocomplete = "off";
     $("#email").autocomplete = "off";
     $("#email").required = true;
@@ -926,7 +926,7 @@
   function render() {
     if (/^\/admin\/?$/.test(location.pathname)) {
       if (!state?.user?.is_platform_staff) {
-        $("#app").innerHTML = '<main class="not-found"><span class="mark">G</span><h1>This page does not exist</h1><p>Check the address and try again.</p><a href="/">Back to Guilded</a></main>';
+        $("#app").innerHTML = '<main class="not-found"><span class="mark">G</span><h1>This page does not exist</h1><p>Check the address and try again.</p><a href="/">Back to Constellation</a></main>';
         return;
       }
       window.renderBadgeIcon = (badge) => badgeIcon(badge);
@@ -967,7 +967,7 @@
             },
           },
         });
-      else $("#app").innerHTML = '<main class="not-found"><h1>Staff tools unavailable</h1><p>Reload Guilded to try again.</p></main>';
+      else $("#app").innerHTML = '<main class="not-found"><h1>Staff tools unavailable</h1><p>Reload Constellation to try again.</p></main>';
       return;
     }
     if (!state) {
@@ -2183,8 +2183,8 @@
             : "https://support.guilded.gg/hc/en-us/requests/new";
           window.open(destination, "_blank", "noopener,noreferrer");
         } else {
-          const label = ({ referral: "Referral program", blog: "Blog", partner: "Become a partner", social: "Social media", jobs: "Careers" })[id] || "Guilded resource";
-          show(label, '<p class="muted">This destination belonged to Guilded’s external service and is not available inside the localhost app.</p>');
+          const label = ({ referral: "Referral program", blog: "Blog", partner: "Become a partner", social: "Social media", jobs: "Careers" })[id] || "Constellation resource";
+          show(label, '<p class="muted">This destination belonged to Constellation’s external service and is not available inside the localhost app.</p>');
         }
         return;
       }

@@ -244,7 +244,7 @@ window.createSettingsUI = function ({
   }
   function badgesPage() {
     const on = serverBadgesList.some((badge) => badge.id === "internal-employee");
-    return `<div class="s-narrow"><p class="s-muted">Server badges appear beside this server’s name for every member who can see it.</p><label class="s-check"><input type="checkbox" data-s-action="internal-employee" ${on ? "checked" : ""}> Internal Employee</label><p class="s-muted">Reserved for Guilded’s staff servers. The badge is granted the moment this is switched on.</p><div class="s-badge-preview">${serverBadgesList.length ? serverBadgesList.map((badge) => `<span class="s-badge-row"><span class="server-badge" title="${e(badge.description || badge.name)}"><img src="${e(badge.icon_url)}" alt="${e(badge.name)}"></span><span>${e(badge.name)}</span></span>`).join("") : '<span class="s-muted">No server badges on this server yet.</span>'}</div></div>`;
+    return `<div class="s-narrow"><p class="s-muted">Server badges appear beside this server’s name for every member who can see it.</p><label class="s-check"><input type="checkbox" data-s-action="internal-employee" ${on ? "checked" : ""}> Internal Employee</label><p class="s-muted">Reserved for Constellation’s staff servers. The badge is granted the moment this is switched on.</p><div class="s-badge-preview">${serverBadgesList.length ? serverBadgesList.map((badge) => `<span class="s-badge-row"><span class="server-badge" title="${e(badge.description || badge.name)}"><img src="${e(badge.icon_url)}" alt="${e(badge.name)}"></span><span>${e(badge.name)}</span></span>`).join("") : '<span class="s-muted">No server badges on this server yet.</span>'}</div></div>`;
   }
   function otherPage() {
     if (tab === "privacy")

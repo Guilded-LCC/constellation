@@ -98,7 +98,7 @@
   function shell(body, heading, crumbs = "") {
     const current = NAV.find(([key]) => key === page)?.[1] || "Staff";
     root().innerHTML = `<main class="staff-shell"><header class="staff-header">
-      <a class="staff-brand" href="/" title="Back to Constellation"><span class="staff-symbol">G</span><span class="staff-brandtext"><strong>Guilded Control</strong><small>Trust &amp; safety workspace</small></span></a>
+      <a class="staff-brand" href="/" title="Back to Constellation"><span class="staff-symbol">G</span><span class="staff-brandtext"><strong>Constellation Control</strong><small>Trust &amp; safety workspace</small></span></a>
       <form class="staff-global-search" data-staff-search="global" role="search"><span class="staff-search-ico">${icon("search", 17)}</span><input name="query" value="${esc(users.query)}" placeholder="Search email, username or account ID" autocomplete="off" aria-label="Search accounts"><kbd>Enter</kbd></form>
       <div class="staff-identity"><span class="staff-identity-name">${esc(user?.name || user?.username || "Staff")}</span><span class="staff-level">${user?.is_platform_admin ? "Platform admin" : "Staff"}</span><a class="staff-return" href="/">Exit</a></div>
     </header><div class="staff-accent"></div>
@@ -108,7 +108,7 @@
       </aside>
       <section class="staff-scroll" id="staff-scroll">
         <div class="staff-content">
-          <div class="staff-page-head"><div>${crumbs ? `<span class="staff-crumb">${crumbs}</span>` : `<span class="staff-crumb">Guilded / ${esc(current)}</span>`}<h1>${esc(heading || current)}</h1></div><div class="staff-page-actions">${button("refresh", "Refresh", "subtle")}</div></div>
+          <div class="staff-page-head"><div>${crumbs ? `<span class="staff-crumb">${crumbs}</span>` : `<span class="staff-crumb">Constellation / ${esc(current)}</span>`}<h1>${esc(heading || current)}</h1></div><div class="staff-page-actions">${button("refresh", "Refresh", "subtle")}</div></div>
           ${note ? `<div class="staff-alert">${esc(note)}</div>` : ""}
           ${error ? `<div class="staff-alert staff-alert-error" role="alert">${esc(error)}</div>` : ""}
           ${body}
@@ -128,7 +128,7 @@
   function dashboard() {
     if (!dashboardData) return `<div class="staff-skeleton"></div><div class="staff-skeleton"></div><div class="staff-skeleton"></div>`;
     const d = dashboardData;
-    return `<div class="staff-stats">${stat("Total accounts", d.users, "All registered users")}${stat("Communities", d.servers, "Servers on Guilded")}${stat("Messages today", d.messages_today, "Since midnight")}${stat("Open reports", d.open_reports, "Awaiting review")}${stat("Suspended", d.suspended, "Accounts on hold")}${stat("Signups · 7d", d.signups_7d, "New accounts this week")}</div>
+    return `<div class="staff-stats">${stat("Total accounts", d.users, "All registered users")}${stat("Communities", d.servers, "Servers on Constellation")}${stat("Messages today", d.messages_today, "Since midnight")}${stat("Open reports", d.open_reports, "Awaiting review")}${stat("Suspended", d.suspended, "Accounts on hold")}${stat("Signups · 7d", d.signups_7d, "New accounts this week")}</div>
       <section class="staff-section"><div class="staff-section-head"><h2>Recent moderation activity</h2><button class="staff-link" data-staff-action="nav" data-page="audit">View audit log ${icon("chevron", 14)}</button></div>
       ${(d.activity || []).length ? `<div class="staff-activity">${d.activity.map((item) => `<article class="staff-activity-row"><span class="staff-activity-mark">${icon("shield", 15)}</span><div><strong>${esc(item.action)}</strong><small>${esc(item.target_type)} ${esc(String(item.target_id || "").slice(0, 8))} · ${esc(item.reason || "No reason supplied")}</small></div><time>${esc(ago(item.created_at))}</time></article>`).join("")}</div>` : `<p class="staff-empty">No staff activity yet.</p>`}</section>`;
   }
@@ -217,7 +217,7 @@
     <div class="staff-columns">
       <section class="staff-section"><div class="staff-section-head"><h2>Community flags</h2></div><p class="staff-line">${esc(s.server?.description || "No description")}</p>
         <div class="staff-flags"><label><input type="checkbox" id="staff-verified" ${s.server?.verified ? "checked" : ""}> Verified</label><label><input type="checkbox" id="staff-partner" ${s.server?.partner ? "checked" : ""}> Partner</label>${button("server-flags", "Save flags")}</div>
-        <p class="staff-note">Partner status automatically grants the Guilded Partner badge to the owner.</p></section>
+        <p class="staff-note">Partner status automatically grants the Constellation Partner badge to the owner.</p></section>
       <section class="staff-section"><div class="staff-section-head"><h2>Server badges</h2></div><label class="staff-check-row"><input type="checkbox" id="staff-internal-employee" ${s.server?.features?.INTERNAL_EMPLOYEE_ONLY ? "checked" : ""}> Internal Employee (staff-only server)</label><p class="staff-note">While INTERNAL_EMPLOYEE_ONLY is on, the server shows the Internal Employee badge everywhere members see it.</p>${button("server-features", "Save badges")}</section>
       <section class="staff-section"><div class="staff-section-head"><h2>Channels</h2><span class="staff-note">${(s.channels || []).length} channels</span></div><div class="staff-chip-list">${(s.channels || []).map((channel) => chip(`${channel.type === "TEXT" ? "#" : ""} ${channel.name}`)).join("") || `<span class="staff-empty">No channels</span>`}</div></section>
       <section class="staff-section"><div class="staff-section-head"><h2>Moderation</h2></div>${s.suspension ? `<div class="staff-reason-card"><strong>Suspension reason</strong><p>${esc(s.suspension.reason)}</p></div>${button("server-unsuspend", "Lift suspension", "subtle")}` : `<label class="staff-label" for="staff-server-reason">Reason for suspension</label><textarea id="staff-server-reason" maxlength="1000" placeholder="Required"></textarea>${button("server-suspend", "Suspend community", "danger")}`}</section>
@@ -279,7 +279,7 @@
       <label>Icon URL<input name="icon_url" value="${esc(badge.icon_url || "")}" placeholder="https://… or upload an image"></label>
       <div class="staff-icon-upload"><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-badge-icon="${esc(badge.id)}"><span data-icon-status>${esc(uploadStatus[badge.id] || "")}</span></div>
       <div class="staff-import-row"><input data-import-url placeholder="Paste any image URL to import"><button type="button" class="staff-button subtle" data-staff-action="import-image">Fetch &amp; host</button><button type="button" class="staff-button subtle" data-staff-action="clean-image">Remove background</button></div>
-      <p class="staff-note">Imported and uploaded icons are re-hosted in Guilded storage, so they keep working if the source disappears. Solid backgrounds are cleaned with remove.bg.</p>
+      <p class="staff-note">Imported and uploaded icons are re-hosted in Constellation storage, so they keep working if the source disappears. Solid backgrounds are cleaned with remove.bg.</p>
       <div class="staff-requirements"><div class="staff-section-head"><h3>Automatic requirements</h3><button type="button" class="staff-link" data-staff-action="rule-add">${icon("plus", 14)} Add requirement</button></div><p class="staff-note">Every requirement must match. No requirements means the badge is granted manually.</p><div data-rule-list>${(badge.requirements || []).map(ruleRow).join("")}</div></div>
       <div class="staff-inline staff-inline-end">${button("badge-cancel", "Cancel", "subtle")}${button("badge-save", "Save badge", "primary")}</div>
     </form>`;
@@ -311,7 +311,7 @@
   function render() {
     const body = page === "dashboard" ? dashboard() : page === "users" ? usersPage() : page === "servers" ? serversPage() : page === "reports" ? reportsPage() : page === "uploads" ? uploadsPage() : page === "badges" ? badgesPage() : page === "staff" ? staffPage() : auditPage();
     const heading = selectedUserId && page === "users" ? "Account detail" : selectedServerId && page === "servers" ? "Community detail" : "";
-    const crumbs = selectedUserId && page === "users" ? "Guilded / Users / Account" : selectedServerId && page === "servers" ? "Guilded / Servers / Community" : "";
+    const crumbs = selectedUserId && page === "users" ? "Constellation / Users / Account" : selectedServerId && page === "servers" ? "Constellation / Servers / Community" : "";
     const previous = document.querySelector("#staff-scroll")?.scrollTop || 0;
     shell(body, heading, crumbs);
     const scroll = document.querySelector("#staff-scroll");
@@ -481,7 +481,7 @@
     const status = statusEl || form.querySelector("[data-icon-status]");
     if (status) status.textContent = "Preparing icon…";
     const prepared = await prepareIcon(blob, status, force);
-    if (status) status.textContent = "Uploading to Guilded storage…";
+    if (status) status.textContent = "Uploading to Constellation storage…";
     const url = await storage.uploadBadgeIcon(prepared.blob, "png");
     const iconField = form.querySelector('input[name="icon_url"]');
     if (iconField) iconField.value = url;

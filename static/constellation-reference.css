@@ -238,7 +238,7 @@ dialog.invite-dialog{width:min(810px,calc(100vw - 24px));max-height:min(520px,ca
 .layout.legacy-nav .legacy-profilebar .icon-button{flex:none;width:34px;height:34px}
 @media(max-width:700px){.layout.legacy-nav{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 50px}.layout.legacy-nav .rail{grid-column:1;grid-row:2}.layout.legacy-nav .main{grid-column:1;grid-row:1}.layout.legacy-nav .members{display:none}.layout.legacy-nav .legacy-profilebar{gap:4px;padding-left:6px}.layout.legacy-nav .legacy-profile{min-width:110px}.layout.legacy-nav .legacy-profile-name{display:none}.layout.legacy-nav .rail .rail-spacer{min-width:0}}
 
-/* Guilded-style default server banner: low-contrast repeating community iconography. */
+/* Constellation-style default server banner: low-contrast repeating community iconography. */
 .overview-art {
   background-color: #292b32;
   background-image:

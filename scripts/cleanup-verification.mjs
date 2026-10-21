@@ -12,7 +12,7 @@ const client = new pg.Client({
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
 });
-const url = "https://hyongvpfhikiibgdlkgw.supabase.co",
+const url = process.env.SUPABASE_URL,
   key = process.env.CONSTELLATION_ADMIN_KEY;
 try {
   await client.connect();

@@ -35,10 +35,9 @@ You need Node.js 20+ and a free Supabase project.
    ```
 
    Use only the migrations here. Do not put the service-role key in the browser.
-3. **Point the browser config at your project.** Edit `static/config.js` and set
-   `supabaseUrl` and `supabasePublishableKey` to your project's URL and
-   publishable (anon) key. These values are public by design; row-level security
-   protects the data.
+3. **Point the browser config at your project.** `static/config.js` ships with
+   placeholders. Replace them with your project's URL and publishable (anon) key.
+   These values are public by design; row-level security protects the data.
 4. **Install dependencies and start the server:**
 
    ```
@@ -70,7 +69,7 @@ npm run test:security    # security tests
 ```
 
 The end-to-end and security tests read their Supabase settings from a local
-`.env` file. Create one with the variables those scripts expect. Never commit it.
+`.env` file. Copy `.env.example` to `.env` and fill in your own values. Never commit `.env`.
 
 ## Security notes
 

@@ -89,7 +89,7 @@ dialog{width:min(520px,calc(100vw - 22px));max-height:94dvh;padding:0;border:1px
 .role-setting input[type=checkbox],.permission input[type=checkbox]{appearance:none;position:relative;flex:none;width:36px;height:19px;margin:0;padding:0;border:0;border-radius:12px;background:#858790;cursor:pointer;transition:background .13s}.role-setting input[type=checkbox]:checked,.permission input[type=checkbox]:checked{background:#42cc47}.role-setting input[type=checkbox]:before,.permission input[type=checkbox]:before{content:"";position:absolute;left:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0006;transition:transform .13s}.role-setting input[type=checkbox]:checked:before,.permission input[type=checkbox]:checked:before{transform:translateX(17px)}.role-setting input[type=checkbox]:disabled,.permission input[type=checkbox]:disabled{opacity:.4;cursor:not-allowed}
 .attachment-pending{position:relative;display:inline-flex;vertical-align:top;margin-top:8px}.chat-image.pending{filter:blur(7px);transform:scale(1.02)}.attachment-pending-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:5px 10px;border-radius:999px;background:#111c;color:#f5c400;font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;pointer-events:none}.file-chip.pending{border-style:dashed;border-color:#8a7636;color:#f0d983}
 
-/* Official Guilded account pill (matches the supplied tag exactly) */
+/* Official Constellation account pill (matches the supplied tag exactly) */
 .official-tag {
   display: inline-flex;
   align-items: center;

@@ -33,16 +33,16 @@ const files = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/config.js', ['config.js', 'text/javascript; charset=utf-8']],
-  ['/guilded.js', ['guilded.js', 'text/javascript; charset=utf-8']],
+  ['/constellation.js', ['constellation.js', 'text/javascript; charset=utf-8']],
   ['/settings-ui.js', ['settings-ui.js', 'text/javascript; charset=utf-8']],
   ['/staff-panel.js', ['staff-panel.js', 'text/javascript; charset=utf-8']],
   ['/staff-panel.css', ['staff-panel.css', 'text/css; charset=utf-8']],
   ['/staff-mobile.css', ['staff-mobile.css', 'text/css; charset=utf-8']],
-  ['/guilded-reference.css', ['guilded-reference.css', 'text/css; charset=utf-8']],
+  ['/constellation-reference.css', ['constellation-reference.css', 'text/css; charset=utf-8']],
   ['/message-relations.css', ['message-relations.css', 'text/css; charset=utf-8']],
   ['/settings.css', ['settings.css', 'text/css; charset=utf-8']],
   ['/tokens.css', ['tokens.css', 'text/css; charset=utf-8']],
-  ['/guilded.css', ['guilded.css', 'text/css; charset=utf-8']],
+  ['/constellation.css', ['constellation.css', 'text/css; charset=utf-8']],
   ['/fonts/inter-latin.woff2', ['fonts/inter-latin.woff2', 'font/woff2']]
 ]);
 
@@ -94,7 +94,7 @@ async function fetchRemoteImage(rawUrl) {
     const response = await fetch(target, {
       redirect: 'manual',
       signal: AbortSignal.timeout(15000),
-      headers: { 'User-Agent': 'Guilded icon importer' }
+      headers: { 'User-Agent': 'Constellation icon importer' }
     }).catch(() => {
       throw httpError(502, 'Could not reach that image URL.');
     });
@@ -149,7 +149,7 @@ const server = createServer(async (request, response) => {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://hyongvpfhikiibgdlkgw.supabase.co wss://hyongvpfhikiibgdlkgw.supabase.co; img-src 'self' data: blob: https://hyongvpfhikiibgdlkgw.supabase.co https://imglink.cc https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: blob: https://*.supabase.co https://imglink.cc https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   };
   if (!['localhost:8766', '127.0.0.1:8766'].includes(request.headers.host)) {
     response.writeHead(403, headers).end('Invalid host'); return;
