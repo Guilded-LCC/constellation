@@ -378,11 +378,9 @@ try {
       await page.reload();
       await page.locator(".layout").waitFor();
     }
-    const name =
-      account.name === "existing"
-        ? "UI Verification Lab"
-        : "Fresh Verification Lab";
-    await page.locator(`.rail button[title="${name}"]`).click();
+    // Server names are not unique, so select the fixture server by id instead
+    // of by title: two servers may legitimately share a name.
+    await page.locator(`.rail button[data-id="${account.server}"]`).click();
     await page.locator('[data-action="server-menu"]').click();
     await page.locator('.context-menu [data-action="settings"]').click();
     await page.locator(".s-shell").waitFor();

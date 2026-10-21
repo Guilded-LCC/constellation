@@ -69,7 +69,7 @@ const uploadedPaths = [];
 const badgeId = `qa-security-${crypto.randomUUID().slice(0, 8)}`;
 const staffActions = [
   "dashboard", "users/search", "user/get", "user/badge", "user/suspend",
-  "servers/search", "server/get", "server/flags", "server/suspend",
+  "servers/search", "server/get", "server/flags", "server/features", "server/suspend",
   "reports", "report/update", "staff/list", "staff/set", "badges/list",
   "badge/save", "badge/delete", "audit",
 ];

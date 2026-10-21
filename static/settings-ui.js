@@ -14,6 +14,8 @@ window.createSettingsUI = function ({
   toast,
   errText,
   modal,
+  isPlatformStaff = () => false,
+  reloadServerBadges = async () => {},
 }) {
   let tab = "overview",
     roles = [],
@@ -26,7 +28,8 @@ window.createSettingsUI = function ({
     busy = false,
     openServer = null,
     hookURL = "",
-    picker = null;
+    picker = null,
+    serverBadgesList = [];
   const $ = (s) => modal.querySelector(s);
   const tabs = [
     ["overview", "Overview"],
@@ -38,7 +41,10 @@ window.createSettingsUI = function ({
     ["webhooks", "Webhooks"],
     ["invites", "Invites"],
     ["bans", "Bans"],
+    ["badges", "Badges"],
   ];
+  // Server badges are a platform-staff control, so members never see the tab.
+  const visibleTabs = () => tabs.filter(([id]) => id !== "badges" || isPlatformStaff());
   const groups = {
     General: [
       [
@@ -185,9 +191,11 @@ window.createSettingsUI = function ({
         ? rolesPage()
         : tab === "overview"
           ? overviewPage()
-          : otherPage();
+          : tab === "badges"
+            ? badgesPage()
+            : otherPage();
     modal.className = "settings-dialog s-settings";
-    modal.innerHTML = `<div class="s-shell"><aside class="s-nav"><div class="s-nav-scroll"><h3>Server settings</h3>${tabs.map(([id, label], i) => `${i === 7 ? '<h3 class="s-user-management">User management</h3>' : ""}<button data-s-action="tab" data-id="${id}" class="${id === tab ? "active" : ""}">${label}</button>`).join("")}</div><footer><button class="s-save" data-s-action="save" ${dirty() ? "" : "disabled"}>Save changes</button><button class="s-cancel" data-s-action="cancel">Cancel</button></footer></aside><main class="s-content"><h2>${tabs.find((t) => t[0] === tab)?.[1] || "Server settings"}</h2>${error ? `<p class="s-error" role="alert">${e(error)}</p>` : ""}${content}</main></div><button class="s-close" data-s-action="close" aria-label="Close settings">${icon("close")}</button>`;
+    modal.innerHTML = `<div class="s-shell"><aside class="s-nav"><div class="s-nav-scroll"><h3>Server settings</h3>${visibleTabs().map(([id, label], i) => `${i === 7 ? '<h3 class="s-user-management">User management</h3>' : ""}<button data-s-action="tab" data-id="${id}" class="${id === tab ? "active" : ""}">${label}</button>`).join("")}</div><footer><button class="s-save" data-s-action="save" ${dirty() ? "" : "disabled"}>Save changes</button><button class="s-cancel" data-s-action="cancel">Cancel</button></footer></aside><main class="s-content"><h2>${visibleTabs().find((t) => t[0] === tab)?.[1] || "Server settings"}</h2>${error ? `<p class="s-error" role="alert">${e(error)}</p>` : ""}${content}</main></div><button class="s-close" data-s-action="close" aria-label="Close settings">${icon("close")}</button>`;
     if (!modal.open) modal.showModal();
     updateDirty();
   }
@@ -227,6 +235,16 @@ window.createSettingsUI = function ({
   }
   function overviewPage() {
     return `<div class="s-overview">${media("avatar")}${media("banner")}<div class="s-divider"></div>${input("name", "Server name", server.name, 'maxlength="80"')}<label class="s-label" for="s-description">Description</label><textarea class="s-underline" id="s-description" data-s-field="description" maxlength="500">${e(server.description)}</textarea></div>`;
+  }
+  async function loadServerBadges() {
+    const rows = await rpc("app_server_badges");
+    serverBadgesList = (Array.isArray(rows) ? rows : []).filter(
+      (row) => row.server_id === openServer,
+    );
+  }
+  function badgesPage() {
+    const on = serverBadgesList.some((badge) => badge.id === "internal-employee");
+    return `<div class="s-narrow"><p class="s-muted">Server badges appear beside this server’s name for every member who can see it.</p><label class="s-check"><input type="checkbox" data-s-action="internal-employee" ${on ? "checked" : ""}> Internal Employee</label><p class="s-muted">Reserved for Guilded’s staff servers. The badge is granted the moment this is switched on.</p><div class="s-badge-preview">${serverBadgesList.length ? serverBadgesList.map((badge) => `<span class="s-badge-row"><span class="server-badge" title="${e(badge.description || badge.name)}"><img src="${e(badge.icon_url)}" alt="${e(badge.name)}"></span><span>${e(badge.name)}</span></span>`).join("") : '<span class="s-muted">No server badges on this server yet.</span>'}</div></div>`;
   }
   function otherPage() {
     if (tab === "privacy")
@@ -280,9 +298,10 @@ window.createSettingsUI = function ({
       }
       openServer = current()?.id;
       if (!openServer) return;
-      tab = tabs.some((t) => t[0] === next) ? next : "overview";
+      tab = visibleTabs().some((t) => t[0] === next) ? next : "overview";
       error = "";
       await load();
+      if (isPlatformStaff()) await loadServerBadges();
       render();
     } catch (err) {
       toast(errText(err));
@@ -425,8 +444,27 @@ window.createSettingsUI = function ({
         case "tab":
           tab = id;
           error = "";
+          if (tab === "badges" && isPlatformStaff()) await loadServerBadges();
           render();
           break;
+        case "internal-employee": {
+          const enabled = !serverBadgesList.some((badge) => badge.id === "internal-employee");
+          try {
+            await rpc("staff_action", {
+              p_action: "server/features",
+              p_payload: { server_id: openServer, flag: "INTERNAL_EMPLOYEE_ONLY", enabled },
+            });
+            await loadServerBadges();
+            await reloadServerBadges();
+            error = "";
+            render();
+            refresh();
+          } catch (err) {
+            error = errText(err);
+            render();
+          }
+          break;
+        }
         case "role":
           selected = id;
           render();

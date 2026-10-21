@@ -8,3 +8,5 @@ __pycache__/
 .env.*
 node_modules/
 dist/
+verification/fixture.json
+.aider*

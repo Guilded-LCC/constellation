@@ -1,46 +1,78 @@
-# Constellation — hosted community chat
+# Constellation
 
-Constellation is now a static web app backed by Supabase. It does not start a local server, create a SQLite database, or store chat data or UI preferences on the device. Authentication sessions are memory-only, so a browser refresh requires signing in again by design.
+Run `npm start` here, then open **http://localhost:8766**. The interface binds
+only to `127.0.0.1`. It serves static files and does not write chat data, a
+database, or logs to this computer. A local process must run while the site is
+open. No npm packages are needed to run it.
 
-## Online configuration
+Accounts, profiles, servers, categories, channels, messages, DMs, roles,
+reactions, invites, moderation, audit entries, display preferences, and uploaded
+server/role images use the Supabase project `hyongvpfhikiibgdlkgw`. Supabase auth
+owns the browser session so hard refreshes remain signed in. The app does not write
+application data to localStorage, sessionStorage, or IndexedDB. Browser-managed form autofill and
+ordinary browser caches are controlled by the browser, although the local
+server sends `Cache-Control: no-store`.
 
-The application is connected to the Supabase project `hyongvpfhikiibgdlkgw`.
-The migrations in `supabase/migrations/` were applied in filename order on
-2026-10-18, including the upgrade of the four dashboard-created tables.
-Do not rerun an already-applied migration. Only the project URL and public
-publishable key appear in `static/config.js`; database passwords and secret
-keys are not part of this project or the deployed website.
+The project URL and publishable key are in `static/config.js`. The service
+secret and database password are not in source or browser files. Migrations in
+`supabase/migrations/` were applied through
+`20261018104000_public_server_privacy.sql` on 2026-10-18. Do not reapply a completed
+migration. Supabase access is through authenticated functions; direct table
+access is revoked from browser roles.
 
-Hosted website: https://constellation-guilded-chat.lingify-official.chatgpt.site
+## Current interface
 
-Create an account on the website, then create a server or use an invite code.
-The current Supabase settings allow email/password signup with immediate
-sign-in. Sessions remain in memory and are discarded on a full page reload.
-Nothing on the PC needs to stay running for the deployed website to work.
+The Guilded-inspired UI has a server rail, banner header, collapsible and
+reorderable categories, channel sidebar, chat, grouped member list, server
+settings, role colors and icons, private category and channel access, and an
+audit log with date, action, and member filters. Server avatars and banners and
+role icons upload to Supabase Storage. Images are center-cropped in browser
+memory before upload. Server and role images have public URLs so that everyone
+who has the URL can load them.
 
-The database schema locks down direct browser table access. The UI only calls three Supabase RPCs, which enforce membership and permission checks in the hosted database.
+Text chat, DMs, reactions, edits, pins, roles, invites, kicks/bans, quick
+switching, and responsive layouts are wired to the hosted database. This is not
+yet complete Guilded feature parity: voice/video, forums, docs, calendars,
+list channels, uploads in chat, badges, a platform staff panel, bots,
+applications, and subscriptions are not implemented.
 
-## What changed
+Server settings now use an in-memory draft with a full-screen overlay, role
+gradients and icons, and one transaction for all pending role changes. Groups,
+custom emotes, public/private visibility, default notification level, expiring
+invites and bans have hosted storage and permission checks. Public servers can
+be found and joined through the Join a server dialog. Private server joins
+require a valid invitation. Announcements on the server home come from actual
+messages in readable announcement channels.
 
-- E-mail/password accounts now use Supabase Auth.
-- Servers, membership, channels, roles, messages, reactions, invitations, moderation state, and profiles live in Supabase Postgres.
-- The existing Discord-style server, channel, role, DM, message, reaction, pin, invite, and moderation flows remain in the interface.
-- There is no local SQLite use, browser localStorage use, local API endpoint, local launcher, tunnel, or background process.
+Incoming webhook configuration and scoped, hashed-token database validation
+are implemented. The Edge Function source is in
+`supabase/functions/incoming-webhook/index.ts`, but its deployment is blocked:
+no Supabase management access token is configured, and the project data/admin
+key is rejected by the management API with HTTP 401. The Webhooks page states
+that posting through the endpoint is unavailable. Deploy it using an
+authenticated Supabase CLI with Edge Functions write access:
 
-## Removing the old local data
+```
+npx supabase functions deploy incoming-webhook --project-ref hyongvpfhikiibgdlkgw --use-api --no-verify-jwt
+```
 
-The legacy `constellation.db` and `Constellation_Local_Chat.zip` were archived
-to the private Supabase Storage bucket `legacy-local-archive`, with byte-for-byte
-verification. This preserves the old username account and server for reference;
-the new hosted app uses Supabase Auth accounts. Automatic approval review
-blocked deleting the local originals. They and `__pycache__` are unused and
-excluded from source publication. The source files in this directory are
-development files, not a running service or growing chat database.
+`verify_jwt=false` is intentional for incoming webhook callers. A random
+256-bit scoped token is required, and the database checks the creator's
+current channel permissions and applies a per-hook rate limit.
 
-Browsers still download the website code and may keep ordinary browser data.
-The app requests no persistent auth storage, creates no local chat database,
-and sends all application data to Supabase.
+See `PROGRESS.md` and `verification/REPORT.md` for exact verification coverage,
+remaining differences, screenshots and the current phase gate. Test tools are
+development dependencies and are not needed by the static server.
 
-## Security note
+## Legacy local data
 
-The project URL and publishable key are intentionally public browser values. They are safe to include in `static/config.js`; row-level security and the RPC boundary protect the data. Never add the Supabase `service_role` secret to a browser file or source-control.
+The prior `constellation.db` and `Constellation_Local_Chat.zip` were uploaded
+byte-for-byte to the private Supabase Storage bucket `legacy-local-archive`
+before their local originals were deleted. The database's old account is a
+legacy record; create a new Supabase Auth account in the current app. The old
+SQLite journal files were also deleted.
+
+Automatic approval review still blocks recursive removal of the unused
+`__pycache__` and temporary setup/package folders. These are not read or
+written by the running app. The earlier private hosted snapshot is unchanged;
+the current requested interface remains on localhost only.

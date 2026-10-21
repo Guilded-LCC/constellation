@@ -87,3 +87,93 @@ dialog{width:min(520px,calc(100vw - 22px));max-height:94dvh;padding:0;border:1px
 @media(max-width:700px){.settings-dialog{width:100vw;height:100dvh;max-width:none}.settings-dialog .modalbody{display:flex;flex-direction:column;height:calc(100% - 55px)}.settings-nav{display:flex;align-items:center;gap:3px;flex:none;width:100%;height:48px;overflow-x:auto;overflow-y:hidden;padding:4px 10px;white-space:nowrap}.settings-nav h3{display:none}.settings-nav button{width:auto;flex:none;font-size:12px;padding:7px 10px}.settings-content{flex:1;overflow:auto;padding:19px 22px}.settings-dialog .modalfoot{min-height:55px;padding:8px 12px;justify-content:flex-end;flex-wrap:nowrap;overflow-x:auto}.settings-dialog .settings-close{top:7px;right:6px;background:var(--sidebar)}.roleeditor{grid-template-columns:minmax(0,1fr);gap:16px}.rolelist{max-height:155px;overflow:auto}.role-move button{display:inline-grid}}
 .segmented{display:inline-flex;border:1px solid #b8bbc3;border-radius:5px;overflow:hidden;margin:8px 0 10px}.segmented button{padding:8px 18px;color:#fff;border-right:1px solid #b8bbc3}.segmented button:last-child{border-right:0}.segmented button.active{background:#444751}.segmented b{margin-left:4px;padding:2px 4px;background:#249be8;border-radius:3px;font-size:9px}
 .role-setting input[type=checkbox],.permission input[type=checkbox]{appearance:none;position:relative;flex:none;width:36px;height:19px;margin:0;padding:0;border:0;border-radius:12px;background:#858790;cursor:pointer;transition:background .13s}.role-setting input[type=checkbox]:checked,.permission input[type=checkbox]:checked{background:#42cc47}.role-setting input[type=checkbox]:before,.permission input[type=checkbox]:before{content:"";position:absolute;left:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0006;transition:transform .13s}.role-setting input[type=checkbox]:checked:before,.permission input[type=checkbox]:checked:before{transform:translateX(17px)}.role-setting input[type=checkbox]:disabled,.permission input[type=checkbox]:disabled{opacity:.4;cursor:not-allowed}
+.attachment-pending{position:relative;display:inline-flex;vertical-align:top;margin-top:8px}.chat-image.pending{filter:blur(7px);transform:scale(1.02)}.attachment-pending-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:5px 10px;border-radius:999px;background:#111c;color:#f5c400;font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;pointer-events:none}.file-chip.pending{border-style:dashed;border-color:#8a7636;color:#f0d983}
+
+/* Official Guilded account pill (matches the supplied tag exactly) */
+.official-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 15px;
+  padding: 0 5px 0 3px;
+  margin-left: 5px;
+  border-radius: 3px;
+  background: #5560f4;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 15px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex: none;
+  vertical-align: middle;
+}
+.official-tag svg {
+  width: 9px;
+  height: 9px;
+  flex: none;
+}
+/* Server badges sit beside the server name */
+.server-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  flex: none;
+}
+.server-badge img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Unified search, bookmarks and saved searches */
+.search-panel { display: flex; flex-direction: column; gap: 12px; }
+.search-input-row { display: flex; gap: 8px; }
+.search-input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; }
+.search-hints { display: flex; flex-wrap: wrap; gap: 6px; }
+.search-hint { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); color: inherit; font: inherit; font-size: 12px; cursor: pointer; }
+.search-hint:hover { background: rgba(255, 255, 255, 0.12); }
+.search-hint code { color: #9fb4ff; font-size: 12px; }
+.search-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.search-tabs { display: flex; gap: 4px; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 8px; }
+.search-tabs button { border: 0; background: transparent; color: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer; font: inherit; }
+.search-tabs .active { background: #5865f2; color: #fff; }
+.search-save-box { display: flex; gap: 6px; }
+.search-save-box input { padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.2); color: inherit; font: inherit; }
+.search-save-box button { border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: inherit; border-radius: 6px; padding: 0 10px; cursor: pointer; font: inherit; }
+.search-saved { display: flex; flex-wrap: wrap; gap: 6px; }
+.saved-chip { display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); border-radius: 999px; overflow: hidden; }
+.saved-chip button { border: 0; background: transparent; color: inherit; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+.saved-del { opacity: 0.6; }
+.search-results { display: flex; flex-direction: column; gap: 6px; max-height: 58vh; overflow: auto; }
+.search-hit { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 10px; text-align: left; padding: 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid transparent; color: inherit; cursor: pointer; }
+.search-hit:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.1); }
+.search-kind { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #9fb4ff; padding-top: 2px; }
+.search-hit-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.search-hit-main strong { font-size: 13px; }
+.search-hit-main span { font-size: 13px; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-hit-main small { font-size: 11px; opacity: 0.55; }
+.search-empty { opacity: 0.6; padding: 18px 4px; }
+.flash { animation: hitFlash 1.6s ease-out; }
+@keyframes hitFlash { 0% { background: rgba(245, 196, 0, 0.3); } 100% { background: transparent; } }
+
+/* Polls */
+.poll-card { margin: 8px 0 4px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); max-width: 520px; }
+.poll-question { margin: 0 0 10px; font-weight: 700; }
+.poll-options { display: flex; flex-direction: column; gap: 6px; }
+.poll-option { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.18); color: inherit; font: inherit; cursor: pointer; overflow: hidden; text-align: left; }
+.poll-option:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.28); }
+.poll-option.voted { border-color: #5865f2; }
+.poll-option:disabled { cursor: default; }
+.poll-bar { position: absolute; inset: 0 auto 0 0; background: rgba(88, 101, 242, 0.28); pointer-events: none; }
+.poll-label { position: relative; z-index: 1; font-size: 14px; }
+.poll-count { position: relative; z-index: 1; font-variant-numeric: tabular-nums; opacity: 0.8; }
+.poll-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.poll-close { border: 0; background: transparent; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; font-size: 12px; opacity: 0.75; }
+.poll-form { display: flex; flex-direction: column; gap: 10px; }
+.poll-form input { padding: 9px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(0, 0, 0, 0.22); color: inherit; font: inherit; }
+.poll-form .poll-options { gap: 8px; }
+.poll-check { display: flex; align-items: center; gap: 8px; }
+.poll-check input { width: auto; }

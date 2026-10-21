@@ -427,8 +427,11 @@ if (process.env.RELATIONS_ONLY === "1") {
 
 const owner = await magicToken(ownerEmail);
 const member = await magicToken(memberEmail);
+const admin = await magicToken("admin@guilded.info");
 let serverId = null;
 let storagePath = null;
+let uiTestBadgeId = null;
+let suspendedUserId = null;
 let browser;
 try {
   // The browser login is real and uses the same anon-key client as the site.
@@ -765,11 +768,80 @@ try {
   await memberPage.locator(`.rail .orb[data-id="${serverId}"]`).waitFor();
   assert.equal(memberErrors.length, 0, memberErrors.join(" | "));
   passed.push("qa-member magic-link sign-in, server join and clean browser console");
+
+  const dashboard = await rpc(admin.access_token, "staff_action", { p_action: "dashboard", p_payload: {} });
+  const dashboardCounts = [dashboard.users, dashboard.servers, dashboard.messages_today, dashboard.open_reports, dashboard.suspended, dashboard.signups_7d];
+  assert(dashboardCounts.every((count) => typeof count === "number"), "staff dashboard must return real numeric counts");
+  const adminPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const adminErrors = [];
+  adminPage.on("console", (message) => { if (message.type() === "error") adminErrors.push(message.text()); });
+  adminPage.on("pageerror", (error) => adminErrors.push(error.message));
+  await adminPage.goto(`${appUrl}/admin`);
+  await adminPage.evaluate(async (session) => {
+    const client = window.supabase.createClient(window.CONSTELLATION_CONFIG.supabaseUrl, window.CONSTELLATION_CONFIG.supabasePublishableKey);
+    const result = await client.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+    if (result.error) throw result.error;
+  }, admin);
+  await adminPage.reload({ waitUntil: "networkidle" });
+  await adminPage.locator(".staff-shell").waitFor();
+  await adminPage.locator(".staff-stat").nth(5).waitFor();
+  const shownCounts = await adminPage.locator(".staff-stat strong").allTextContents();
+  assert.deepEqual(shownCounts.map(Number), dashboardCounts, "admin dashboard UI must display the exact live Supabase counts");
+  await adminPage.screenshot({ path: "verification/live-admin-1280.png" });
+  await adminPage.locator(".staff-nav [data-page='users']").click();
+  const userSearch = adminPage.locator("form[data-staff-search='users']");
+  await userSearch.locator("input[name='query']").fill("qa-owner");
+  await userSearch.evaluate((form) => form.requestSubmit());
+  await adminPage.locator(".staff-user-results").waitFor();
+  assert.equal(await adminPage.locator(".staff-user-results").evaluate((el) => getComputedStyle(el).overflowY), "auto");
+  await adminPage.locator(`.staff-user-results [data-staff-action='user'][data-id='${ownerState.user.id}']`).click();
+  await adminPage.locator(".staff-detail").waitFor();
+  await adminPage.locator(".staff-detail").getByText("QA Owner", { exact: true }).waitFor();
+  await adminPage.locator(".staff-detail").getByText("Servers", { exact: true }).waitFor();
+  const ownerStaffDetail = await rpc(admin.access_token, "staff_action", { p_action: "user/get", p_payload: { user_id: ownerState.user.id } });
+  await adminPage.locator(".staff-detail").getByText(`${Number(ownerStaffDetail.reports) || 0} related report(s)`, { exact: true }).waitFor();
+  assert((await adminPage.locator(".staff-detail").innerText()).includes("joined"), "user detail should show the account join date");
+  await adminPage.screenshot({ path: "verification/live-admin-users-1280.png" });
+  uiTestBadgeId = `qa-ui-${crypto.randomUUID().slice(0, 8)}`;
+  await rpc(admin.access_token, "staff_action", { p_action: "badge/save", p_payload: { id: uiTestBadgeId, name: "QA UI Badge", position: 9001 } });
+  await adminPage.locator(".staff-nav [data-page='users']").click();
+  await adminPage.locator(`.staff-user-results [data-staff-action='user'][data-id='${ownerState.user.id}']`).click();
+  await adminPage.locator(".staff-detail").waitFor();
+  await adminPage.locator("#staff-badge-select").selectOption(uiTestBadgeId);
+  await adminPage.locator(".staff-detail [data-staff-action='badge-grant']").click();
+  await adminPage.locator(".staff-detail .staff-chip-list .staff-tag").filter({ hasText: uiTestBadgeId }).waitFor();
+  await adminPage.locator(`.staff-detail button[aria-label='Revoke ${uiTestBadgeId}']`).click();
+  await adminPage.locator(`.staff-detail button[aria-label='Revoke ${uiTestBadgeId}']`).waitFor({ state: "detached" });
+  suspendedUserId = ownerState.user.id;
+  await adminPage.locator("#staff-user-reason").fill("Temporary live UI suspension test");
+  await adminPage.locator(".staff-detail [data-staff-action='user-suspend']").click();
+  await adminPage.locator(".staff-detail .staff-reason").filter({ hasText: "Temporary live UI suspension test" }).waitFor();
+  await adminPage.locator(".staff-detail [data-staff-action='user-unsuspend']").click();
+  await adminPage.locator(".staff-detail .staff-tag").filter({ hasText: "Active" }).waitFor();
+  assert.equal((await rpc(admin.access_token, "staff_action", { p_action: "user/get", p_payload: { user_id: ownerState.user.id } })).suspension, null);
+  suspendedUserId = null;
+  await rpc(admin.access_token, "staff_action", { p_action: "badge/delete", p_payload: { id: uiTestBadgeId } });
+  uiTestBadgeId = null;
+  await adminPage.setViewportSize({ width: 390, height: 844 });
+  await adminPage.waitForTimeout(220);
+  assert.equal(await adminPage.evaluate(() => document.documentElement.scrollWidth), 390, "staff detail must fit a mobile viewport");
+  await adminPage.screenshot({ path: "verification/live-admin-users-390.png" });
+  await adminPage.locator(".staff-shell").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  assert(await adminPage.locator(".staff-shell").evaluate((el) => el.scrollTop > 0), "long staff detail page should remain scrollable on mobile");
+  assert.equal(adminErrors.length, 0, adminErrors.join(" | "));
+  passed.push("existing platform admin sees live dashboard counts and opens QA user detail; user list scrolls, mobile fits, empty console");
+
+  await memberPage.goto(`${appUrl}/admin`, { waitUntil: "networkidle" });
+  await memberPage.locator(".not-found").waitFor();
+  assert.equal(memberErrors.length, 0, memberErrors.join(" | "));
+  passed.push("non-staff /admin access resolves to the normal not-found page");
   await memberPage.close();
 
   if (browserErrors.length) throw Error(`QA owner browser console errors: ${browserErrors.join(" | ")}`);
   passed.push("qa-owner browser console empty");
 } finally {
+  if (suspendedUserId) await rpc(admin.access_token, "staff_action", { p_action: "user/suspend", p_payload: { user_id: suspendedUserId, enabled: false, reason: "Temporary UI regression cleanup" } }).catch(() => {});
+  if (uiTestBadgeId) await rpc(admin.access_token, "staff_action", { p_action: "badge/delete", p_payload: { id: uiTestBadgeId } }).catch(() => {});
   if (browser) await browser.close();
   if (storagePath) {
     await fetch(`${supabaseUrl}/storage/v1/object/attachments/${storagePath}`, {

@@ -1,2 +1,5 @@
 [functions.webhook-post]
 verify_jwt = false
+
+[functions.image-tools]
+verify_jwt = true
