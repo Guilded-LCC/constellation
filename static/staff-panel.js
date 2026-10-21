@@ -75,7 +75,7 @@
   }
   function uploads() {
     const rows = (data || []).filter(r => r.status === 'pending');
-    return `${rows.length ? rows.map((r) => `<article class="staff-report"><div class="staff-report-title"><strong>${esc(r.file_name)}</strong><span class="staff-tag">${Math.round(r.byte_size/1024)}KB</span></div><p>Uploaded by ${esc(r.user?.name || r.user?.username)} · ${new Date(r.created_at).toLocaleString()}</p><div class="staff-inline">${button("upload-approve", "Approve", "subtle")}${button("upload-delete", "Delete", "danger")}</div></article>`).join("") : `<p class="staff-empty">No pending user uploads found.</p>`}`;
+    return `${rows.length ? rows.map((r) => `<article class="staff-report"><div class="staff-report-title"><strong>${esc(r.file_name)}</strong><span class="staff-tag">${Math.round(r.byte_size/1024)}KB</span></div><p>Uploaded by ${esc(r.user?.name || r.user?.username)} · ${new Date(r.created_at).toLocaleString()}</p><div class="staff-inline"><button class="staff-button subtle" data-staff-action="upload-approve" data-id="${esc(r.id)}">Approve</button><button class="staff-button danger" data-staff-action="upload-delete" data-id="${esc(r.id)}">Delete</button></div></article>`).join("") : `<p class="staff-empty">No pending user uploads found.</p>`}`;
   }
 
   function audit() {
