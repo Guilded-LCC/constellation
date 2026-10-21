@@ -20,9 +20,9 @@ page.on("console", (message) => {
 page.on("pageerror", (error) => errors.push(error.message));
 
 await page.goto(url, { waitUntil: "networkidle" });
-if (await page.title() !== "Guilded" || !(await page.getByRole("heading", { name: "Welcome back" }).count())) {
+if (await page.title() !== "Constellation" || !(await page.getByRole("heading", { name: "Welcome back" }).count())) {
   await browser.close();
-  throw Error("The signed-out home should show the Guilded sign-in screen.");
+  throw Error("The signed-out home should show the Constellation sign-in screen.");
 }
 await page.getByRole("button", { name: "Create an account" }).click();
 await page.getByRole("heading", { name: "Create an account" }).waitFor();
