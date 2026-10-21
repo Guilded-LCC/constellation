@@ -16,5 +16,6 @@
     "playwright": "^1.64.1",
     "prettier": "^3.9.10",
     "sharp": "^0.35.5"
-  }
+  },
+  "license": "MIT"
 }
