@@ -219,40 +219,40 @@ returns jsonb language sql stable security definer set search_path=public as $$
   where p.id = p_user
 $$;
 
--- Seed the Guilded badge catalogue descriptions.
+-- Seed the Constellation badge catalogue descriptions.
 update public.staff_badges set description = case id
-  when 'staff' then 'Awarded automatically to members of the Guilded platform team.'
-  when 'verified' then 'Confirms this account is an official, verified Guilded presence.'
-  when 'early-supporter' then 'Supported Guilded during its earliest days. No longer obtainable.'
-  when 'guilded-partner' then 'Runs a partnered community that meets Guilded partner criteria.'
-  when 'guilded-house-bravery' then 'Member of HypeSquad Bravery, the house of courage.'
-  when 'guilded-house-brilliance' then 'Member of HypeSquad Brilliance, the house of creativity.'
-  when 'guilded-house-balance' then 'Member of HypeSquad Balance, the house of calm.'
-  when 'guilded-events-attendee' then 'Attended an official Guilded community event.'
-  when 'guilded-bug-hunter' then 'Reported valid security or product bugs to the Guilded team.'
-  when 'guilded-certified-moderator' then 'Completed the Guilded certified moderator program.'
-  when 'guilded-active-developer' then 'Ships an active Guilded bot or application.'
-  when 'guilded-verified-bot-developer-legacy' then 'Legacy award for developers of verified bots.'
-  when 'guilded-premium-subscriber' then 'Active Guilded Premium subscriber.'
-  when 'guilded-server-booster' then 'Boosted a community with Guilded Premium.'
-  when 'guilded-verified-bot' then 'An official bot verified by the Guilded team.'
-  when 'guilded-early-verified-bot-developer' then 'Legacy award for early verified bot developers.'
-  when 'guilded-community-moderator' then 'Recognised community leader and moderator.'
-  when 'guilded-event-staff' then 'Helped run an official Guilded event.'
-  when 'guilded-event-participant' then 'Took part in a seasonal Guilded event.'
-  when 'guilded-seasonal-event' then 'Earned during a limited seasonal event.'
-  when 'guilded-game-developer' then 'Built a game integration for Guilded.'
+  when 'staff' then 'Awarded automatically to members of the Constellation platform team.'
+  when 'verified' then 'Confirms this account is an official, verified Constellation presence.'
+  when 'early-supporter' then 'Supported Constellation during its earliest days. No longer obtainable.'
+  when 'constellation-partner' then 'Runs a partnered community that meets Constellation partner criteria.'
+  when 'constellation-house-bravery' then 'Member of HypeSquad Bravery, the house of courage.'
+  when 'constellation-house-brilliance' then 'Member of HypeSquad Brilliance, the house of creativity.'
+  when 'constellation-house-balance' then 'Member of HypeSquad Balance, the house of calm.'
+  when 'constellation-events-attendee' then 'Attended an official Constellation community event.'
+  when 'constellation-bug-hunter' then 'Reported valid security or product bugs to the Constellation team.'
+  when 'constellation-certified-moderator' then 'Completed the Constellation certified moderator program.'
+  when 'constellation-active-developer' then 'Ships an active Constellation bot or application.'
+  when 'constellation-verified-bot-developer-legacy' then 'Legacy award for developers of verified bots.'
+  when 'constellation-premium-subscriber' then 'Active Constellation Premium subscriber.'
+  when 'constellation-server-booster' then 'Boosted a community with Constellation Premium.'
+  when 'constellation-verified-bot' then 'An official bot verified by the Constellation team.'
+  when 'constellation-early-verified-bot-developer' then 'Legacy award for early verified bot developers.'
+  when 'constellation-community-moderator' then 'Recognised community leader and moderator.'
+  when 'constellation-event-staff' then 'Helped run an official Constellation event.'
+  when 'constellation-event-participant' then 'Took part in a seasonal Constellation event.'
+  when 'constellation-seasonal-event' then 'Earned during a limited seasonal event.'
+  when 'constellation-game-developer' then 'Built a game integration for Constellation.'
   else description end
 where description = '';
 
 update public.staff_badges set category = case
   when id in ('staff', 'verified') then 'identity'
-  when id like 'guilded-house-%' then 'hypesquad'
-  when id in ('guilded-partner', 'guilded-premium-subscriber', 'guilded-server-booster') then 'program'
-  when id in ('guilded-verified-bot', 'guilded-active-developer',
-              'guilded-verified-bot-developer-legacy', 'guilded-early-verified-bot-developer',
-              'guilded-game-developer') then 'developer'
-  when id like 'guilded-%event%' or id = 'guilded-events-attendee' or id = 'guilded-seasonal-event' then 'event'
+  when id like 'constellation-house-%' then 'hypesquad'
+  when id in ('constellation-partner', 'constellation-premium-subscriber', 'constellation-server-booster') then 'program'
+  when id in ('constellation-verified-bot', 'constellation-active-developer',
+              'constellation-verified-bot-developer-legacy', 'constellation-early-verified-bot-developer',
+              'constellation-game-developer') then 'developer'
+  when id like 'constellation-%event%' or id = 'constellation-events-attendee' or id = 'constellation-seasonal-event' then 'event'
   else 'achievement' end;
 
 -- Badge icons are now drawn by the client; clear external images that the CSP blocks.
@@ -265,11 +265,11 @@ insert into public.badge_requirements(badge, kind, config)
 select v.badge, v.kind, v.config
 from (values
   ('staff', 'staff', '{}'::jsonb),
-  ('guilded-partner', 'partner_owner', '{}'::jsonb),
-  ('guilded-house-bravery', 'hypesquad', '{"house":"bravery"}'::jsonb),
-  ('guilded-house-brilliance', 'hypesquad', '{"house":"brilliance"}'::jsonb),
-  ('guilded-house-balance', 'hypesquad', '{"house":"balance"}'::jsonb),
-  ('guilded-active-developer', 'is_bot', '{}'::jsonb),
+  ('constellation-partner', 'partner_owner', '{}'::jsonb),
+  ('constellation-house-bravery', 'hypesquad', '{"house":"bravery"}'::jsonb),
+  ('constellation-house-brilliance', 'hypesquad', '{"house":"brilliance"}'::jsonb),
+  ('constellation-house-balance', 'hypesquad', '{"house":"balance"}'::jsonb),
+  ('constellation-active-developer', 'is_bot', '{}'::jsonb),
   ('early-supporter', 'created_before', '{"date":"2026-10-01T00:00:00Z"}'::jsonb)
 ) as v(badge, kind, config)
 where exists (select 1 from public.staff_badges b where b.id = v.badge)

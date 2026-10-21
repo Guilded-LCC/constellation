@@ -37,7 +37,7 @@ for (const [view, ref] of Object.entries(sources))
       .png()
       .toBuffer();
     const labels = Buffer.from(
-      `<svg width="${width * 2 + 20}" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#17191e"/><text x="12" y="25" fill="white" font-family="Arial" font-size="15">Guilded reference</text><text x="${width + 32}" y="25" fill="white" font-family="Arial" font-size="15">Constellation · ${view} · ${width}×800</text></svg>`,
+      `<svg width="${width * 2 + 20}" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#17191e"/><text x="12" y="25" fill="white" font-family="Arial" font-size="15">Reference</text><text x="${width + 32}" y="25" fill="white" font-family="Arial" font-size="15">Constellation · ${view} · ${width}×800</text></svg>`,
     );
     await sharp({
       create: {

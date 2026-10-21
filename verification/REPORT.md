@@ -31,7 +31,7 @@ Console capture images show the console events recorded from the actual localhos
 ## What passed on both accounts
 
 - Roles: create, live draft naming, solid/gradient choices, icon upload and center crop, edit, atomic save, discard confirmation, delete, drag ordering saved in Supabase, base Member role protected, hard refresh and sign-out/sign-in.
-- Groups: create, edit name/description, delete. Groups currently represent named community groups; a separate Guilded-style group/channel workspace is not implemented.
+- Groups: create, edit name/description, delete. Groups currently represent named community groups; a separate Constellation-style group/channel workspace is not implemented.
 - Emotes: upload, name, rename, delete. Both Unicode and server custom emotes are available in the role picker.
 - Server metadata: privacy/invite policy/default notification level save to Supabase; avatar/banner upload and removal; description persistence read back from the database.
 - Invitations: create with expiration, revoke, and reject expired invitations. Private servers cannot be joined through public joining; public servers are discoverable and joinable.
@@ -68,7 +68,7 @@ All were real requests using ordinary account access tokens, not service-role si
 
 Phase C's badge/staff security tests were not attempted because that phase has not started. **Platform-admin bootstrap SQL applied: none.**
 
-## Guilded comparisons and remaining differences
+## Constellation comparisons and remaining differences
 
 | View | 1280px comparison | 900px comparison | 390px comparison |
 |---|---|---|---|

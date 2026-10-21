@@ -7,7 +7,7 @@
 
 ## Phase C — profiles, badges, platform staff
 - Editable member profile with avatar, bio, status and durable badges.
-- Add a Supabase-backed platform-staff model and staff panel for staff-only moderation/visibility. Bootstrap `admin@guilded.info` as the first platform admin with explicit SQL.
+- Add a Supabase-backed platform-staff model and staff panel for staff-only moderation/visibility. Bootstrap `admin@constellation.example` as the first platform admin with explicit SQL.
 - All reads must be null-safe and all errors human readable.
 
 ## Phase D — channel types

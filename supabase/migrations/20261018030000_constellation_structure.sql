@@ -1,4 +1,4 @@
--- Guilded-style organization and appearance. Apply once after the earlier migrations.
+-- Constellation-style organization and appearance. Apply once after the earlier migrations.
 alter table public.servers add column if not exists avatar_url text not null default '';
 alter table public.servers add column if not exists banner_url text not null default '';
 alter table public.roles add column if not exists icon_url text not null default '';

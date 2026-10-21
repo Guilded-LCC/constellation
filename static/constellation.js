@@ -322,25 +322,25 @@
       staff: wrap(gold, line(gold, "M12 4.6l5.6 2v4.6c0 3.6-2.3 6-5.6 7.4-3.3-1.4-5.6-3.8-5.6-7.4V6.6z") + line("#15181f", "m9.6 11.6 1.8 1.8 3.4-3.6", 1.9)),
       verified: wrap(gold, `<circle cx="12" cy="12" r="6.4" fill="#f5c400"/>` + line("#15181f", "m9.4 12.1 1.7 1.7 3.6-3.9", 1.9)),
       "early-supporter": wrap(gold, `<path d="M12 18c-3.4-2-5.6-4-5.6-6.6A3.1 3.1 0 0 1 12 9.3a3.1 3.1 0 0 1 5.6 2.1C17.6 14 15.4 16 12 18z" fill="#f5c400"/>`),
-      "guilded-partner": wrap(gold, `<circle cx="9.6" cy="12" r="3.6" fill="none" stroke="${gold}" stroke-width="1.7"/><circle cx="14.4" cy="12" r="3.6" fill="none" stroke="${gold}" stroke-width="1.7"/>`),
-      "guilded-house-bravery": wrap(red, `<path d="M12 4.4c3 3 4.6 5.2 4.6 7.7A4.6 4.6 0 0 1 12 16.7a4.6 4.6 0 0 1-4.6-4.6c0-2.5 1.6-4.7 4.6-7.7z" fill="${red}"/><path d="M12 10.2c1.1 1.2 1.6 2 1.6 2.9a1.6 1.6 0 0 1-3.2 0c0-.9.5-1.7 1.6-2.9z" fill="#15181f"/>`),
-      "guilded-house-brilliance": wrap(violet, `<path d="M12 4.2l2 5.4 5.4 2-5.4 2-2 5.4-2-5.4-5.4-2 5.4-2z" fill="${violet}"/>`),
-      "guilded-house-balance": wrap(green, line(green, "M12 5.4v13M6.6 8.2h10.8") + line(green, "M8.2 8.2 5.8 13h4.8zM15.8 8.2 13.4 13h4.8z", 1.5)),
-      "guilded-events-attendee": wrap(gold, `<path d="M5 9.4a2.6 2.6 0 0 0 0 5.2v2.2h14v-2.2a2.6 2.6 0 0 1 0-5.2V7.2H5z" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M12 8.6l.9 2 2.1.3-1.6 1.5.4 2.1-1.8-1-1.8 1 .4-2.1-1.6-1.5 2.1-.3z", 1.1)),
-      "guilded-events-attendee-legacy": wrap(gold, line(gold, "M8 7.4h8M8 11h8M8 14.6h5")),
-      "guilded-bug-hunter": wrap(green, `<ellipse cx="12" cy="13" rx="3.4" ry="4.2" fill="${green}"/>` + line(green, "M12 8.2V6M8.6 9.4 6.8 8M15.4 9.4l1.8-1.4M8.3 13H5.8M15.7 13h2.5M8.6 16.6 6.8 18M15.4 16.6l1.8 1.4", 1.4)),
-      "guilded-certified-moderator": wrap(gold, `<path d="M12 4.6l5.6 2v4.6c0 3.6-2.3 6-5.6 7.4-3.3-1.4-5.6-3.8-5.6-7.4V6.6z" fill="none" stroke="${gold}" stroke-width="1.4"/>` + line(gold, "m12 8.3 1.1 2.3 2.5.3-1.9 1.7.5 2.5-2.2-1.3-2.2 1.3.5-2.5-1.9-1.7 2.5-.3z", 1)),
-      "guilded-active-developer": wrap(blue, line(blue, "m9.4 8.6-3.6 3.4 3.6 3.4M14.6 8.6l3.6 3.4-3.6 3.4M13.2 6.8l-2.4 10.4", 1.6)),
-      "guilded-verified-bot-developer-legacy": wrap(blue, `<rect x="7.2" y="9" width="9.6" height="7.4" rx="2" fill="none" stroke="${blue}" stroke-width="1.5"/>` + line(blue, "M12 9V6.6M12 6.6h.01") + `<circle cx="10" cy="12.6" r="0.9" fill="${blue}"/><circle cx="14" cy="12.6" r="0.9" fill="${blue}"/>`),
-      "guilded-premium-subscriber": wrap(pink, `<path d="M7 7.2h10l2 3.4-7 8.6-7-8.6z" fill="${pink}"/><path d="M9.4 7.2 12 18.4l2.6-11.2z" fill="#15181f" opacity=".25"/>`),
-      "guilded-server-booster": wrap(orange, `<path d="M12 4.4c3.2 2.1 4.4 5 4.4 8l-2.2 3.4h-4.4L7.6 12.4c0-3 1.2-5.9 4.4-8z" fill="${orange}"/><circle cx="12" cy="10" r="1.8" fill="#15181f"/><path d="M10 17.4l2 2.6 2-2.6z" fill="${orange}"/>`),
-      "guilded-verified-bot": wrap(blue, `<rect x="7.2" y="9" width="9.6" height="7.4" rx="2" fill="${blue}"/>` + line(blue, "M12 9V6.6") + `<circle cx="10" cy="12.6" r="0.9" fill="#15181f"/><circle cx="14" cy="12.6" r="0.9" fill="#15181f"/>`),
-      "guilded-early-verified-bot-developer": wrap(blue, `<rect x="7.2" y="9.6" width="9.6" height="6.8" rx="2" fill="none" stroke="${blue}" stroke-width="1.5"/>` + line(blue, "M12 9.6V7.2") + `<circle cx="10" cy="12.8" r="0.8" fill="${blue}"/><circle cx="14" cy="12.8" r="0.8" fill="${blue}"/>` + line(gold, "m12 4.2.8 1.8 1.9.2-1.4 1.3.4 1.9-1.7-1-1.7 1 .4-1.9-1.4-1.3 1.9-.2z", 0.9)),
-      "guilded-community-moderator": wrap(gold, `<circle cx="12" cy="10.4" r="4.2" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "m9.7 13.6-1.4 6 3.7-2 3.7 2-1.4-6", 1.5)),
-      "guilded-event-staff": wrap(gold, `<rect x="5.6" y="7" width="12.8" height="11" rx="1.6" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M5.6 10.4h12.8M9.2 5.6v2.8M14.8 5.6v2.8m-6.3 6.1 1.6 1.6 3-3.2", 1.4)),
-      "guilded-event-participant": wrap(gold, `<rect x="5.6" y="7" width="12.8" height="11" rx="1.6" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M5.6 10.4h12.8M9.2 5.6v2.8M14.8 5.6v2.8", 1.4)),
-      "guilded-seasonal-event": wrap(blue, line(blue, "M12 5v14M6 8.5l12 7M18 8.5l-12 7", 1.5) + line(blue, "m9.8 5.9 2.2 1.1 2.2-1.1M9.8 18.1l2.2-1.1 2.2 1.1", 1.2)),
-      "guilded-game-developer": wrap(violet, `<path d="M7.4 9h9.2a3 3 0 0 1 2.9 3.7l-.6 3a2.2 2.2 0 0 1-3.7.9L13.8 15h-3.6l-1.4 1.6a2.2 2.2 0 0 1-3.7-.9l-.6-3A3 3 0 0 1 7.4 9z" fill="${violet}"/>` + line("#15181f", "M9.2 11.8v2.2M8.1 12.9h2.2", 1.2) + `<circle cx="15" cy="12.4" r="0.8" fill="#15181f"/><circle cx="16.4" cy="13.8" r="0.8" fill="#15181f"/>`),
+      "constellation-partner": wrap(gold, `<circle cx="9.6" cy="12" r="3.6" fill="none" stroke="${gold}" stroke-width="1.7"/><circle cx="14.4" cy="12" r="3.6" fill="none" stroke="${gold}" stroke-width="1.7"/>`),
+      "constellation-house-bravery": wrap(red, `<path d="M12 4.4c3 3 4.6 5.2 4.6 7.7A4.6 4.6 0 0 1 12 16.7a4.6 4.6 0 0 1-4.6-4.6c0-2.5 1.6-4.7 4.6-7.7z" fill="${red}"/><path d="M12 10.2c1.1 1.2 1.6 2 1.6 2.9a1.6 1.6 0 0 1-3.2 0c0-.9.5-1.7 1.6-2.9z" fill="#15181f"/>`),
+      "constellation-house-brilliance": wrap(violet, `<path d="M12 4.2l2 5.4 5.4 2-5.4 2-2 5.4-2-5.4-5.4-2 5.4-2z" fill="${violet}"/>`),
+      "constellation-house-balance": wrap(green, line(green, "M12 5.4v13M6.6 8.2h10.8") + line(green, "M8.2 8.2 5.8 13h4.8zM15.8 8.2 13.4 13h4.8z", 1.5)),
+      "constellation-events-attendee": wrap(gold, `<path d="M5 9.4a2.6 2.6 0 0 0 0 5.2v2.2h14v-2.2a2.6 2.6 0 0 1 0-5.2V7.2H5z" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M12 8.6l.9 2 2.1.3-1.6 1.5.4 2.1-1.8-1-1.8 1 .4-2.1-1.6-1.5 2.1-.3z", 1.1)),
+      "constellation-events-attendee-legacy": wrap(gold, line(gold, "M8 7.4h8M8 11h8M8 14.6h5")),
+      "constellation-bug-hunter": wrap(green, `<ellipse cx="12" cy="13" rx="3.4" ry="4.2" fill="${green}"/>` + line(green, "M12 8.2V6M8.6 9.4 6.8 8M15.4 9.4l1.8-1.4M8.3 13H5.8M15.7 13h2.5M8.6 16.6 6.8 18M15.4 16.6l1.8 1.4", 1.4)),
+      "constellation-certified-moderator": wrap(gold, `<path d="M12 4.6l5.6 2v4.6c0 3.6-2.3 6-5.6 7.4-3.3-1.4-5.6-3.8-5.6-7.4V6.6z" fill="none" stroke="${gold}" stroke-width="1.4"/>` + line(gold, "m12 8.3 1.1 2.3 2.5.3-1.9 1.7.5 2.5-2.2-1.3-2.2 1.3.5-2.5-1.9-1.7 2.5-.3z", 1)),
+      "constellation-active-developer": wrap(blue, line(blue, "m9.4 8.6-3.6 3.4 3.6 3.4M14.6 8.6l3.6 3.4-3.6 3.4M13.2 6.8l-2.4 10.4", 1.6)),
+      "constellation-verified-bot-developer-legacy": wrap(blue, `<rect x="7.2" y="9" width="9.6" height="7.4" rx="2" fill="none" stroke="${blue}" stroke-width="1.5"/>` + line(blue, "M12 9V6.6M12 6.6h.01") + `<circle cx="10" cy="12.6" r="0.9" fill="${blue}"/><circle cx="14" cy="12.6" r="0.9" fill="${blue}"/>`),
+      "constellation-premium-subscriber": wrap(pink, `<path d="M7 7.2h10l2 3.4-7 8.6-7-8.6z" fill="${pink}"/><path d="M9.4 7.2 12 18.4l2.6-11.2z" fill="#15181f" opacity=".25"/>`),
+      "constellation-server-booster": wrap(orange, `<path d="M12 4.4c3.2 2.1 4.4 5 4.4 8l-2.2 3.4h-4.4L7.6 12.4c0-3 1.2-5.9 4.4-8z" fill="${orange}"/><circle cx="12" cy="10" r="1.8" fill="#15181f"/><path d="M10 17.4l2 2.6 2-2.6z" fill="${orange}"/>`),
+      "constellation-verified-bot": wrap(blue, `<rect x="7.2" y="9" width="9.6" height="7.4" rx="2" fill="${blue}"/>` + line(blue, "M12 9V6.6") + `<circle cx="10" cy="12.6" r="0.9" fill="#15181f"/><circle cx="14" cy="12.6" r="0.9" fill="#15181f"/>`),
+      "constellation-early-verified-bot-developer": wrap(blue, `<rect x="7.2" y="9.6" width="9.6" height="6.8" rx="2" fill="none" stroke="${blue}" stroke-width="1.5"/>` + line(blue, "M12 9.6V7.2") + `<circle cx="10" cy="12.8" r="0.8" fill="${blue}"/><circle cx="14" cy="12.8" r="0.8" fill="${blue}"/>` + line(gold, "m12 4.2.8 1.8 1.9.2-1.4 1.3.4 1.9-1.7-1-1.7 1 .4-1.9-1.4-1.3 1.9-.2z", 0.9)),
+      "constellation-community-moderator": wrap(gold, `<circle cx="12" cy="10.4" r="4.2" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "m9.7 13.6-1.4 6 3.7-2 3.7 2-1.4-6", 1.5)),
+      "constellation-event-staff": wrap(gold, `<rect x="5.6" y="7" width="12.8" height="11" rx="1.6" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M5.6 10.4h12.8M9.2 5.6v2.8M14.8 5.6v2.8m-6.3 6.1 1.6 1.6 3-3.2", 1.4)),
+      "constellation-event-participant": wrap(gold, `<rect x="5.6" y="7" width="12.8" height="11" rx="1.6" fill="none" stroke="${gold}" stroke-width="1.5"/>` + line(gold, "M5.6 10.4h12.8M9.2 5.6v2.8M14.8 5.6v2.8", 1.4)),
+      "constellation-seasonal-event": wrap(blue, line(blue, "M12 5v14M6 8.5l12 7M18 8.5l-12 7", 1.5) + line(blue, "m9.8 5.9 2.2 1.1 2.2-1.1M9.8 18.1l2.2-1.1 2.2 1.1", 1.2)),
+      "constellation-game-developer": wrap(violet, `<path d="M7.4 9h9.2a3 3 0 0 1 2.9 3.7l-.6 3a2.2 2.2 0 0 1-3.7.9L13.8 15h-3.6l-1.4 1.6a2.2 2.2 0 0 1-3.7-.9l-.6-3A3 3 0 0 1 7.4 9z" fill="${violet}"/>` + line("#15181f", "M9.2 11.8v2.2M8.1 12.9h2.2", 1.2) + `<circle cx="15" cy="12.4" r="0.8" fill="#15181f"/><circle cx="16.4" cy="13.8" r="0.8" fill="#15181f"/>`),
       "qa-security-13e0a605": wrap(green, line(green, "M8.2 11V9.4a3.8 3.8 0 0 1 7.6 0V11") + `<rect x="7.2" y="11" width="9.6" height="7.2" rx="2" fill="none" stroke="${green}" stroke-width="1.6"/>` + `<circle cx="12" cy="14.6" r="1.1" fill="${green}"/>`),
       "hypesquad-bravery": wrap(red, `<path d="M12 4.4c3 3 4.6 5.2 4.6 7.7A4.6 4.6 0 0 1 12 16.7a4.6 4.6 0 0 1-4.6-4.6c0-2.5 1.6-4.7 4.6-7.7z" fill="${red}"/><path d="M12 10.2c1.1 1.2 1.6 2 1.6 2.9a1.6 1.6 0 0 1-3.2 0c0-.9.5-1.7 1.6-2.9z" fill="#15181f"/>`),
       "hypesquad-brilliance": wrap(violet, `<path d="M12 4.2l2 5.4 5.4 2-5.4 2-2 5.4-2-5.4-5.4-2 5.4-2z" fill="${violet}"/>`),
@@ -1495,7 +1495,7 @@
     show(
       "User settings",
       `<div class="settings-username"><img class="modifyuser-mark" src="/assets/modifyuser.png" alt="" aria-hidden="true"><span>Your username</span><strong>@${escapeHtml(userHandle(user))}</strong><small>Usernames are permanent. Contact staff if a name needs to be released.</small></div>${field("profile-name", "Display name", user.name)}${field("profile-avatar", "Avatar character", user.avatar || "")}<label for="profile-bio">About me</label><textarea id="profile-bio">${escapeHtml(user.bio || "")}</textarea>${field("profile-custom-status", "Custom status", user.custom_status || "")}<div class="status-emoji-field">${field("profile-custom-emoji", "Status emoji", user.custom_status_emoji || "")}</div><label for="profile-status">Presence</label><select id="profile-status">${["online", "idle", "dnd", "invisible"].map((status) => `<option ${status === user.status ? "selected" : ""}>${status}</option>`).join("")}</select>${(() => {
-        const house = ((user.badges || []).find((badge) => /^(?:guilded-house|hypesquad)-/.test(String(badge.id || badge))) || {}).id?.replace(/^(?:guilded-house|hypesquad)-/, "") || user.hypesquad || "";
+        const house = ((user.badges || []).find((badge) => /^(?:constellation-house|hypesquad)-/.test(String(badge.id || badge))) || {}).id?.replace(/^(?:constellation-house|hypesquad)-/, "") || user.hypesquad || "";
         return `<label for="profile-hypesquad">HypeSquad house</label><select id="profile-hypesquad"><option value="">Not set</option>${[["bravery", "Bravery"], ["brilliance", "Brilliance"], ["balance", "Balance"]].map(([id, label]) => `<option value="${id}" ${house === id ? "selected" : ""}>${label}</option>`).join("")}</select><button type="button" class="hypesquad-quiz-button" data-action="hypesquad-quiz">Not sure? Take the quiz</button>`;
       })()}<label class="legacy-preference"><input id="profile-legacy-nav" type="checkbox" ${uiPreferences.legacy_navigation ? "checked" : ""}><span><strong>Use legacy navigation</strong><small>Displays servers on an additional bottom navigation bar.</small></span></label><h3 class="v3-settings-subhead">Badges</h3><div class="v3-profile-badges">${(user.badges || []).map((badge) => `<span class="v3-badge" title="${escapeHtml(badgeTitle(badge))}"><span class="v3-badge-icon">${badgeIcon(badge)}</span>${escapeHtml(badgeName(badge))}</span>`).join("") || '<span class="v3-badge muted">No badges yet</span>'}</div>`,
       `<button class="secondary" data-action="view-own-profile">View public profile</button><button class="secondary" data-action="logout">Sign out</button><button class="primary" data-action="save-profile">Save profile</button>`,
@@ -2154,13 +2154,13 @@
       if (action === "user-menu") {
         const entries = [];
         entries.push(
-          { label: "Referral program", action: "guilded-resource", icon: "invite", id: "referral" },
-          { label: "Support", action: "guilded-resource", icon: "help", id: "support" },
-          { label: "Feedback", action: "guilded-resource", icon: "megaphone", id: "feedback" },
-          { label: "Blog", action: "guilded-resource", icon: "list", id: "blog" },
-          { label: "Become a partner", action: "guilded-resource", icon: "users", id: "partner" },
-          { label: "Follow us on social media", action: "guilded-resource", icon: "sparkles", id: "social" },
-          { label: "We're hiring!", action: "guilded-resource", icon: "arrow", id: "jobs" },
+          { label: "Referral program", action: "constellation-resource", icon: "invite", id: "referral" },
+          { label: "Support", action: "constellation-resource", icon: "help", id: "support" },
+          { label: "Feedback", action: "constellation-resource", icon: "megaphone", id: "feedback" },
+          { label: "Blog", action: "constellation-resource", icon: "list", id: "blog" },
+          { label: "Become a partner", action: "constellation-resource", icon: "users", id: "partner" },
+          { label: "Follow us on social media", action: "constellation-resource", icon: "sparkles", id: "social" },
+          { label: "We're hiring!", action: "constellation-resource", icon: "arrow", id: "jobs" },
         );
         if (state.user?.is_platform_staff)
           entries.push({ label: "Staff panel", action: "staff-panel", icon: "shield" });
@@ -2176,16 +2176,9 @@
         }
         return;
       }
-      if (action === "guilded-resource") {
-        if (id === "support" || id === "feedback") {
-          const destination = id === "support"
-            ? "https://support.guilded.gg/hc/en-us"
-            : "https://support.guilded.gg/hc/en-us/requests/new";
-          window.open(destination, "_blank", "noopener,noreferrer");
-        } else {
-          const label = ({ referral: "Referral program", blog: "Blog", partner: "Become a partner", social: "Social media", jobs: "Careers" })[id] || "Constellation resource";
-          show(label, '<p class="muted">This destination belonged to Constellation’s external service and is not available inside the localhost app.</p>');
-        }
+      if (action === "resource") {
+        const label = ({ referral: "Referral program", support: "Support", feedback: "Feedback", blog: "Blog", partner: "Become a partner", social: "Social media", jobs: "Careers" })[id] || "Constellation resource";
+        show(label, '<p class="muted">This destination is not configured for this Constellation instance yet.</p>');
         return;
       }
       if (action === "channel-menu") {

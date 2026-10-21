@@ -2,6 +2,7 @@ import pg from "pg";
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../verification/", import.meta.url));
+const adminEmail = process.env.CONSTELLATION_ADMIN_EMAIL || "admin@constellation.example";
 const fixture = JSON.parse(await fs.readFile(root + "fixture.json", "utf8"));
 if (fixture.cleaned) {
   console.log("Verification fixtures already cleaned.");
@@ -45,7 +46,7 @@ try {
       throw Error("Refusing to delete an unexpected server");
   const keptBefore = (
     await client.query(
-      "select u.id,p.id profile_id,(select count(*) from public.servers s where s.owner=u.id and not(s.id=any($1::uuid[]))) servers from auth.users u join public.profiles p on p.id=u.id where u.email='admin@guilded.info'",
+      "select u.id,p.id profile_id,(select count(*) from public.servers s where s.owner=u.id and not(s.id=any($1::uuid[]))) servers from auth.users u join public.profiles p on p.id=u.id where u.email='" + adminEmail + "'",
       [servers],
     )
   ).rows;
@@ -94,7 +95,7 @@ try {
   }
   const keptAfter = (
     await client.query(
-      "select u.id,p.id profile_id,(select count(*) from public.servers s where s.owner=u.id) servers from auth.users u join public.profiles p on p.id=u.id where u.email='admin@guilded.info'",
+      "select u.id,p.id profile_id,(select count(*) from public.servers s where s.owner=u.id) servers from auth.users u join public.profiles p on p.id=u.id where u.email='" + adminEmail + "'",
     )
   ).rows;
   if (JSON.stringify(keptAfter) !== JSON.stringify(keptBefore))

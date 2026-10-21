@@ -15,8 +15,9 @@ if (!supabaseUrl || !anonKey || !serviceKey) {
 
 const passed = [];
 const blocked = [];
-const ownerEmail = "qa-owner@guilded.local";
-const memberEmail = "qa-member@guilded.local";
+const ownerEmail = "qa-owner@constellation.local";
+const memberEmail = "qa-member@constellation.local";
+const adminEmail = process.env.CONSTELLATION_ADMIN_EMAIL || "admin@constellation.example";
 async function magicToken(email) {
   const generated = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
     method: "POST",
@@ -81,7 +82,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     assert.equal(invitePreview.inviter_name, ownerState.user.name);
     await expectDenied(() => rpc(member.access_token, "app_invite_preview", { p_code: "invalid-qa-invite" }), "invalid invite preview");
     await rpc(member.access_token, "app_api", { p_action: "server/join", p_payload: { code: invite.code } });
-    const inviteTestServer = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Guilded QA Invite ${Date.now()}` } });
+    const inviteTestServer = await rpc(owner.access_token, "app_api", { p_action: "server/create", p_payload: { name: `Constellation QA Invite ${Date.now()}` } });
     inviteTestServerId = inviteTestServer.id;
     inviteTestCode = (await rpc(owner.access_token, "app_api", { p_action: "server/invite", p_payload: { server: inviteTestServerId } })).code;
     const anonymousPreviewResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/app_invite_preview`, {
@@ -216,12 +217,12 @@ if (process.env.RELATIONS_ONLY === "1") {
     await page.locator(".profilebar .profile-identity").click();
     await page.locator("#profile-custom-status").waitFor();
     assert.equal(await page.locator("#profile-custom-status").inputValue(), "Temporary QA status");
-    await page.locator("#profile-custom-status").fill("Reviewing Guilded UI");
+    await page.locator("#profile-custom-status").fill("Reviewing Constellation UI");
     await page.locator("#profile-custom-emoji").fill("🎧");
     await page.locator("#modal [data-action='save-profile']").click();
-    await page.locator(".profilebar").getByText("Reviewing Guilded UI", { exact: false }).waitFor();
+    await page.locator(".profilebar").getByText("Reviewing Constellation UI", { exact: false }).waitFor();
     await page.locator(`.rail .orb[data-id="${serverId}"]`).click();
-    await page.locator(`.members .member[data-id="${ownerProfileId}"] .who small`).filter({ hasText: "Reviewing Guilded UI" }).waitFor();
+    await page.locator(`.members .member[data-id="${ownerProfileId}"] .who small`).filter({ hasText: "Reviewing Constellation UI" }).waitFor();
     await page.screenshot({ path: "verification/live-custom-status-1280.png" });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: "verification/live-custom-status-390.png" });
@@ -339,7 +340,7 @@ if (process.env.RELATIONS_ONLY === "1") {
     await invitePage.locator(".rail [data-action='join-server']").click();
     await invitePage.locator("#invite-code").fill(inviteTestCode);
     await invitePage.locator("#modal [data-action='preview-invite']").click();
-    await invitePage.locator("#modal.invite-dialog").filter({ hasText: "Guilded QA Invite" }).waitFor();
+    await invitePage.locator("#modal.invite-dialog").filter({ hasText: "Constellation QA Invite" }).waitFor();
     await invitePage.locator("#modal.invite-dialog").filter({ hasText: "QA Owner invited you to join" }).waitFor();
     await invitePage.screenshot({ path: "verification/live-invite-preview-1280.png" });
     await invitePage.setViewportSize({ width: 390, height: 844 });
@@ -427,7 +428,7 @@ if (process.env.RELATIONS_ONLY === "1") {
 
 const owner = await magicToken(ownerEmail);
 const member = await magicToken(memberEmail);
-const admin = await magicToken("admin@guilded.info");
+const admin = await magicToken(adminEmail);
 let serverId = null;
 let storagePath = null;
 let uiTestBadgeId = null;
@@ -498,7 +499,7 @@ try {
     await rpc(owner.access_token, "app_api", { p_action: "message/delete", p_payload: { id: item.id } });
   }
   await page.locator(".rail [data-action='home']").click();
-  assert.equal(await page.locator(".rail .brand").evaluate((el) => getComputedStyle(el).outlineWidth), "2px", "active direct-message rail icon should use the Guilded gold outline");
+  assert.equal(await page.locator(".rail .brand").evaluate((el) => getComputedStyle(el).outlineWidth), "2px", "active direct-message rail icon should use the Constellation gold outline");
   await page.locator(".sidebar [data-action='new-dm']").first().click();
   await page.locator("#dm-username").fill(memberUser.username);
   await page.locator("#modal [data-action='open-dm']").click();

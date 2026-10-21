@@ -1,4 +1,4 @@
--- The official Guilded account: no login, no discriminator, system messages only.
+-- The official Constellation account: no login, no discriminator, system messages only.
 alter table public.profiles add column if not exists is_official boolean not null default false;
 
 -- Only trusted server-side code may mark an account official; a member must not
@@ -36,20 +36,20 @@ begin
   )
   values (
     '00000000-0000-0000-0000-000000000000', official, 'authenticated', 'authenticated',
-    'system@guilded.invalid', null, null, now(), now(), '{}'::jsonb, '{"name":"Guilded"}'::jsonb, false
+    'system@constellation.invalid', null, null, now(), now(), '{}'::jsonb, '{"name":"Constellation"}'::jsonb, false
   )
   on conflict (id) do nothing;
 
   delete from auth.identities where user_id = official;
   update auth.users
     set email = null, encrypted_password = null, email_confirmed_at = null,
-        raw_app_meta_data = '{}'::jsonb, raw_user_meta_data = '{"name":"Guilded"}'::jsonb
+        raw_app_meta_data = '{}'::jsonb, raw_user_meta_data = '{"name":"Constellation"}'::jsonb
     where id = official;
 
   update public.profiles
-    set username = 'guilded', name = 'Guilded', username_plain = true,
+    set username = 'constellation', name = 'Constellation', username_plain = true,
         discriminator = null, must_rename = false, is_official = true,
-        bio = 'Official Guilded account. System and privacy notices only — this account cannot sign in or reply.'
+        bio = 'Official Constellation account. System and privacy notices only — this account cannot sign in or reply.'
     where id = official;
 end $$;
 

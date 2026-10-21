@@ -55,7 +55,7 @@ async function fetchRemoteImage(rawUrl: unknown) {
     const response = await fetch(target, {
       redirect: "manual",
       signal: AbortSignal.timeout(15000),
-      headers: { "User-Agent": "Guilded icon importer" },
+      headers: { "User-Agent": "Constellation icon importer" },
     }).catch(() => {
       throw Object.assign(new Error("Could not reach that image URL."), { status: 502 });
     });

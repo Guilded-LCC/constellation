@@ -8,6 +8,7 @@ const url = process.env.SUPABASE_URL;
 const anon = process.env.SUPABASE_ANON_KEY;
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !anon || !service) throw Error("Set Supabase HTTPS credentials in the local .env.");
+const adminEmail = process.env.CONSTELLATION_ADMIN_EMAIL || "admin@constellation.example";
 
 async function session(email) {
   const created = await fetch(`${url}/auth/v1/admin/generate_link`, {
@@ -57,9 +58,9 @@ async function upload(token, channel, label, remember) {
   return response;
 }
 
-const owner = await session("qa-owner@guilded.local");
-const member = await session("qa-member@guilded.local");
-const admin = await session("admin@guilded.info");
+const owner = await session("qa-owner@constellation.local");
+const member = await session("qa-member@constellation.local");
+const admin = await session(adminEmail);
 const ownerState = await rpc(owner.access_token, "app_state");
 const memberState = await rpc(member.access_token, "app_state");
 const adminState = await rpc(admin.access_token, "app_state");

@@ -57,6 +57,19 @@ try {
     }
   }
 
+  // A renamed migration keeps its version prefix, so a ledger row with the same
+  // prefix means the file was already applied under its previous name.
+  const applied = await client.query("select name from public._applied_migrations");
+  const appliedVersions = new Set(
+    applied.rows.map((row) => (row.name.match(/^(\d{14})_/) || [])[1]).filter(Boolean),
+  );
+  for (const name of files) {
+    const versionMatch = name.match(/^(\d{14})_/);
+    if (versionMatch && appliedVersions.has(versionMatch[1])) {
+      await client.query("insert into public._applied_migrations(name) values($1) on conflict(name) do nothing", [name]);
+    }
+  }
+
   for (const name of files) {
     const known = await client.query("select 1 from public._applied_migrations where name=$1", [name]);
     if (known.rowCount) {

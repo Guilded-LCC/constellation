@@ -7,7 +7,7 @@ create table if not exists public.platform_staff(
 insert into public.platform_staff(user_id,level)
 select user_id,'admin' from public.platform_admins on conflict(user_id) do update set level='admin';
 insert into public.platform_staff(user_id,level)
-select p.id,'admin' from public.profiles p join auth.users u on u.id=p.id where lower(u.email)='admin@guilded.info'
+select p.id,'admin' from public.profiles p join auth.users u on u.id=p.id where lower(u.email)='admin@constellation.example'
 on conflict(user_id) do update set level='admin';
 -- Keep the legacy, RLS-locked table in place for dependency safety. The
 -- compatibility function below now reads platform_staff, so it is inert.
