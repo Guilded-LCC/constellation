@@ -1,0 +1,60 @@
+{
+  "phase": "A",
+  "started": "2026-10-21T13:45:25.712Z",
+  "checks": [],
+  "security": [
+    {
+      "test": "non-member cannot read server settings",
+      "status": 400,
+      "message": "You are not a member of this server"
+    },
+    {
+      "test": "direct roles table write rejected",
+      "status": 403
+    },
+    {
+      "test": "direct webhook table read rejected",
+      "status": 403
+    },
+    {
+      "test": "non-manager role-icon upload rejected by Storage RLS",
+      "status": 400,
+      "message": "new row violates row-level security policy"
+    },
+    {
+      "test": "non-member cannot save roles",
+      "status": 400,
+      "message": "You do not have permission to manage roles"
+    },
+    {
+      "test": "member without Manage roles cannot save roles",
+      "status": 400,
+      "message": "You do not have permission to manage roles"
+    },
+    {
+      "test": "member cannot change server settings",
+      "status": 400,
+      "message": "You do not have permission to change these settings"
+    },
+    {
+      "test": "member cannot create groups",
+      "status": 400,
+      "message": "You do not have permission to change these settings"
+    },
+    {
+      "test": "member cannot read webhook settings",
+      "status": 400,
+      "message": "You do not have permission to manage webhooks"
+    }
+  ],
+  "screenshots": [],
+  "viewportChecks": [],
+  "console": [],
+  "errors": [
+    "locator.click: Error: strict mode violation: locator('.rail button[title=\"UI Verification Lab\"]') resolved to 2 elements:\n    1) <button class=\"orb  \" data-action=\"server\" title=\"UI Verification Lab\" aria-label=\"UI Verification Lab\" data-id=\"7d538e00-1334-46a3-8dba-8237c5144445\">U</button> aka getByRole('button', { name: 'UI Verification Lab' }).first()\n    2) <button class=\"orb  \" data-action=\"server\" title=\"UI Verification Lab\" aria-label=\"UI Verification Lab\" data-id=\"f15313df-fd20-4782-ad35-6ef401f17cea\">U</button> aka getByRole('button', { name: 'UI Verification Lab' }).nth(1)\n\nCall log:\n\u001b[2m  - waiting for locator('.rail button[title=\"UI Verification Lab\"]')\u001b[22m\n\n    at C:\\Users\\Sailish\\Desktop\\disc\\constellation\\scripts\\verify-phase-a.mjs:385:57"
+  ],
+  "gaps": [],
+  "missingProfiles": 0,
+  "status": "FAIL",
+  "visibleError": []
+}

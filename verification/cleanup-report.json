@@ -1,0 +1,16 @@
+{
+  "removed": {
+    "accounts": 2,
+    "servers": 2,
+    "storageObjects": 37
+  },
+  "remaining": {
+    "users": "0",
+    "profiles": "0",
+    "servers": "0"
+  },
+  "existingAccountPreserved": true,
+  "existingServersPreserved": true,
+  "existingChannelsRolesMessagesPreserved": true,
+  "missingProfiles": 0
+}

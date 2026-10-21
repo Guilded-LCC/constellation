@@ -10,3 +10,5 @@ node_modules/
 dist/
 verification/fixture.json
 .aider*
+.openai/
+supabase/.temp/

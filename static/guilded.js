@@ -1616,7 +1616,8 @@
             p_closes_at: closesRaw ? new Date(closesRaw).toISOString() : null,
           });
           closeModal();
-          await refresh();
+          await loadMessages();
+          render();
           toast("Poll published");
         } catch (error) {
           toast(errText(error));
@@ -1626,7 +1627,8 @@
       if (action === "poll-vote") {
         try {
           await rpc("app_poll_vote", { p_poll: id, p_index: Number(button.dataset.option) });
-          await refresh();
+          await loadMessages();
+          render();
         } catch (error) {
           toast(errText(error));
         }
@@ -1635,7 +1637,8 @@
       if (action === "poll-close") {
         try {
           await rpc("app_poll_close", { p_poll: id });
-          await refresh();
+          await loadMessages();
+          render();
         } catch (error) {
           toast(errText(error));
         }
